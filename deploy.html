@@ -253,11 +253,11 @@
   <a href="train.html" class="nav-link">Train</a>
   <a href="search.html" class="nav-link">Search</a>
   <a href="community.html" class="nav-link">Community</a>
-  <select class="lang-select" onchange="goToLang(this.value)" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:0.3rem 0.5rem;font-size:0.8rem;font-family:inherit;cursor:pointer;margin-left:0.5rem">
-    <option value="en">🇺🇸 EN</option>
-    <option value="zh">🇨🇳 中文</option>
-    <option value="ko">🇰🇷 한국어</option>
-    <option value="es">🇪🇸 ES</option>
+  <select class="lang-select" onchange="goToLang(this.value)" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:0.3rem 0.4rem;font-size:0.8rem;font-family:inherit;cursor:pointer;width:48px">
+    <option value="en">🇺🇸</option>
+    <option value="zh">🇨🇳</option>
+    <option value="ko">🇰🇷</option>
+    <option value="es">🇪🇸</option>
   </select>
 </nav>
 
@@ -836,7 +836,13 @@ renderAll();
 
 function goToLang(lang) {
   localStorage.setItem('hermes_lang', lang);
-  window.location.href = 'index.html';
+  // Reload current page if it supports i18n, otherwise just save
+  if (typeof setLanguage === 'function') {
+    setLanguage(lang);
+  } else {
+    // Save preference and redirect to home which has full i18n
+    window.location.href = 'index.html';
+  }
 }
 </script>
 

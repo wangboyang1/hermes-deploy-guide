@@ -110,6 +110,15 @@
   }
   .quick-link:hover { border-color: var(--accent); color: var(--accent); }
 
+  .os-tog {
+    padding: 0.4rem 1.2rem; font-size: 0.85rem; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); color: var(--muted); font-family: inherit;
+    transition: all 0.15s;
+  }
+  .os-tog.active { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.06); }
+  .os-tog:hover { border-color: var(--muted); color: var(--text); }
+
   footer {
     text-align: center; padding: 2rem 1.5rem; border-top: 1px solid var(--border);
     color: var(--muted); font-size: 0.82rem;
@@ -132,11 +141,11 @@
   <a href="train.html" class="nav-link">Train</a>
   <a href="search.html" class="nav-link active">Search</a>
   <a href="community.html" class="nav-link">Community</a>
-  <select class="lang-select" onchange="setUILanguage(this.value)">
-    <option value="en">🇺🇸 EN</option>
-    <option value="zh">🇨🇳 中文</option>
-    <option value="ko">🇰🇷 한국어</option>
-    <option value="es">🇪🇸 ES</option>
+  <select class="lang-select" onchange="setUILanguage(this.value)" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:0.3rem 0.4rem;font-size:0.8rem;font-family:inherit;cursor:pointer;width:48px">
+    <option value="en">🇺🇸</option>
+    <option value="zh">🇨🇳</option>
+    <option value="ko">🇰🇷</option>
+    <option value="es">🇪🇸</option>
   </select>
 </nav>
 
@@ -152,6 +161,12 @@
     <span class="shortcut">Type to search</span>
   </div>
   <div class="search-hint" id="searchHint">Try: "install", "model setup", "Telegram", "profile", "cron", or type in Chinese/Korean/Spanish</div>
+
+  <div class="os-toggles" style="display:flex;justify-content:center;gap:0.5rem;margin-bottom:1rem">
+    <button class="os-tog active" id="osToggleMac" onclick="setOSFilter('mac')">🍎 macOS / Linux</button>
+    <button class="os-tog" id="osToggleWin" onclick="setOSFilter('win')">🪟 Windows</button>
+    <button class="os-tog" id="osToggleAll" onclick="setOSFilter('all')" style="display:none">🌐 All</button>
+  </div>
 
   <div class="quick-links" id="quickLinks">
     <button class="quick-link" onclick="quickSearch('hermes setup')">hermes setup</button>
@@ -181,14 +196,14 @@
 // ═══════════════════════════════════════════
 const KB = [
   // ── Quick Start / Installation ──
-  { id:1, cat:'cli', en:'Install Hermes', zh:'安装 Hermes', ko:'Hermes 설치', es:'Instalar Hermes',
+  { id:1, cat:'cli', os:'mac', en:'Install Hermes', zh:'安装 Hermes', ko:'Hermes 설치', es:'Instalar Hermes',
     desc_en:'One-command install for Linux/macOS/WSL2. Downloads and sets up Hermes automatically.',
     desc_zh:'Linux/macOS/WSL2 一条命令安装。自动下载并设置 Hermes。',
     desc_ko:'Linux/macOS/WSL2에서 한 줄 명령어로 설치. Hermes를 자동으로 다운로드하고 설정합니다.',
     desc_es:'Instalación con un solo comando para Linux/macOS/WSL2. Descarga y configura Hermes automáticamente.',
     code:'curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash',
     link:'https://hermes-agent.nousresearch.com/docs/#install' },
-  { id:2, cat:'cli', en:'Windows Install (PowerShell)', zh:'Windows 安装 (PowerShell)', ko:'Windows 설치 (PowerShell)', es:'Instalación en Windows (PowerShell)',
+  { id:2, cat:'cli', os:'win', en:'Windows Install (PowerShell)', zh:'Windows 安装 (PowerShell)', ko:'Windows 설치 (PowerShell)', es:'Instalación en Windows (PowerShell)',
     desc_en:'Native Windows install via PowerShell. Early beta — see docs for details.',
     desc_zh:'通过 PowerShell 原生 Windows 安装。早期测试版 — 详情见文档。',
     desc_ko:'PowerShell을 통한 네이티브 Windows 설치. 초기 베타 — 자세한 내용은 문서 참조.',
@@ -434,6 +449,7 @@ const UI = {
 };
 
 let uiLang = localStorage.getItem('hermes_lang') || 'en';
+let osFilter = 'all';  // 'mac', 'win', or 'all'
 
 function setUILanguage(lang) {
   uiLang = lang;
@@ -446,6 +462,13 @@ function setUILanguage(lang) {
   document.querySelector('.page-header h1').textContent = '🔍 ' + UI[lang].title;
   document.querySelector('.page-header p').textContent = UI[lang].subtitle;
   document.title = UI[lang].title;
+  doSearch();
+}
+
+function setOSFilter(os) {
+  osFilter = os;
+  document.querySelectorAll('.os-tog').forEach(b => b.classList.remove('active'));
+  document.getElementById('osToggle' + (os === 'mac' ? 'Mac' : os === 'win' ? 'Win' : 'All')).classList.add('active');
   doSearch();
 }
 
@@ -465,6 +488,9 @@ function doSearch() {
   
   // Score each entry
   const scored = KB.map(entry => {
+    // OS filter: skip entries that are OS-specific and don't match
+    if (osFilter !== 'all' && entry.os && entry.os !== osFilter) return { entry, score: -1 };
+
     let score = 0;
     const searchIn = [
       entry.en || '', entry.zh || '', entry.ko || '', entry.es || '',
