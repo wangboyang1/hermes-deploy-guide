@@ -159,8 +159,8 @@
 </nav>
 
 <div class="page-header">
-  <h1>💡 Community Ideas</h1>
-  <p>See how others use Hermes — and share what you've built. No login required.</p>
+  <h1 id="pageTitleC">💡 Community Ideas</h1>
+  <p id="pageSubC">See how others use Hermes — and share what you've built. No login required.</p>
 </div>
 
 <main>
@@ -362,9 +362,24 @@ function goToLang(lang) {
   localStorage.setItem('hermes_lang', lang);
   var sel = document.querySelector('.lang-select');
   if (sel) sel.value = lang;
+  applyCommunityLang(lang);
   if (typeof setLanguage === 'function') setLanguage(lang);
   if (typeof setUILanguage === 'function') setUILanguage(lang);
 }
+
+const TLC = {
+  en:{title:'💡 Community Ideas',sub:'See how others use Hermes — and share what you\'ve built. No login required.'},
+  zh:{title:'💡 社区创意',sub:'看看别人如何使用 Hermes — 并分享你的成果。无需登录。'},
+  ko:{title:'💡 커뮤니티 아이디어',sub:'다른 사람들이 Hermes를 어떻게 사용하는지 보고 — 당신이 만든 것을 공유하세요. 로그인 불필요.'},
+  es:{title:'💡 Ideas de la Comunidad',sub:'Ve cómo otros usan Hermes — y comparte lo que has construido. Sin registro.'},
+};
+function applyCommunityLang(lang){
+  var d = TLC[lang] || TLC.en;
+  document.title = d.title;
+  var t = document.getElementById('pageTitleC'); if(t) t.textContent = d.title;
+  var s = document.getElementById('pageSubC'); if(s) s.textContent = d.sub;
+}
+applyCommunityLang(localStorage.getItem('hermes_lang')||'en');
 </script>
 
 </body>
