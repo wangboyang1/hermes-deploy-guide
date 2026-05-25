@@ -23,9 +23,10 @@ A step-by-step interactive guide for non-technical users to deploy [Hermes Agent
 
 | Page | Description |
 |------|-------------|
-| **Home** (`index.html`) | Value proposition — why run an AI agent locally, who it's for |
+| **Home** (`index.html`) | Value proposition — why run an AI agent locally, who it's for. Now in 4 languages (EN/中文/한국어/ES) |
 | **Deploy** (`deploy.html`) | Interactive 6-step wizard with OS detection, model recommendations, cloud API setup, and copy-paste commands |
 | **Commands** (`commands.html`) | Terminal basics for macOS and Windows, full Hermes CLI reference, and Best Practices & Pro Tips from the official docs |
+| **Train** (`train.html`) | 🆕 Interactive terminal simulator — 8 training modules with 28 hands-on exercises. Learn profiles, multi-agent, GitHub, messaging, browsing, files, dashboard, and sessions |
 | **Community** (`community.html`) | Idea board where users share how they use Hermes — post and like |
 
 ## Features
@@ -34,6 +35,8 @@ A step-by-step interactive guide for non-technical users to deploy [Hermes Agent
 - 🧠 **Hardware-aware model recommendations** — picks the best model for your RAM and GPU
 - 📋 **One-click copy** for every command — no typing needed
 - 🌓 **Dark theme** throughout — easy on the eyes
+- 🌐 **Multi-language** — English, 简体中文, 한국어, Español
+- 🎮 **Training simulator** — learn Hermes by typing real commands in a simulated terminal
 - 📱 **Responsive** — works on desktop and mobile
 - 🔒 **Pure static HTML** — no frameworks, no build step, no tracking
 
@@ -43,9 +46,10 @@ Plain HTML, CSS, and vanilla JavaScript. Zero dependencies. Hosted on GitHub Pag
 
 ```
 hermes-deploy-guide/
-├── index.html        # Home page
+├── index.html        # Home page (4 languages)
 ├── deploy.html       # Step-by-step deployment wizard
-├── commands.html     # Terminal & Hermes command reference
+├── commands.html     # Terminal & Hermes command reference + tips
+├── train.html        # Interactive terminal training simulator
 ├── community.html    # Community idea board
 └── README.md
 ```

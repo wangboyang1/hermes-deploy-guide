@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hermes Training Simulator — Learn by Doing</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --orange: #d2991d; --red: #f85149;
+    --purple: #a371f7; --term-bg: #0a0e14; --term-text: #c9d1d9;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* ── Nav ── */
+  nav {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem; display: flex; align-items: center; gap: 0;
+    flex-shrink: 0; z-index: 10;
+  }
+  nav .logo {
+    font-weight: 700; font-size: 1.1rem; color: #fff;
+    text-decoration: none; padding: 1rem 0; margin-right: auto;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  nav a.nav-link {
+    color: var(--muted); text-decoration: none; padding: 1rem 1rem;
+    font-size: 0.9rem; border-bottom: 2px solid transparent; transition: all 0.15s;
+  }
+  nav a.nav-link:hover, nav a.nav-link.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  /* ── Layout ── */
+  .layout { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 280px; flex-shrink: 0; background: var(--surface);
+    border-right: 1px solid var(--border); overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  .sidebar h3 {
+    padding: 1.2rem 1rem 0.6rem; font-size: 0.8rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .topic {
+    padding: 0.7rem 1rem; cursor: pointer; display: flex; align-items: center;
+    gap: 0.6rem; font-size: 0.88rem; border-left: 3px solid transparent;
+    transition: all 0.15s; color: var(--text);
+  }
+  .topic:hover { background: rgba(88,166,255,0.04); }
+  .topic.active { background: rgba(88,166,255,0.08); border-left-color: var(--accent); color: #fff; }
+  .topic .check {
+    width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; border: 2px solid var(--border);
+  }
+  .topic.done .check { background: var(--green); border-color: var(--green); color: #fff; }
+  .topic.done .check::after { content: '✓'; }
+  .topic .label { flex: 1; }
+  .topic .badge {
+    font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 8px;
+    background: rgba(88,166,255,0.15); color: var(--accent);
+  }
+  .progress-bar-wrap {
+    padding: 0.8rem 1rem; border-top: 1px solid var(--border);
+    font-size: 0.8rem; color: var(--muted);
+  }
+  .progress-bar-outer {
+    height: 4px; background: var(--border); border-radius: 2px;
+    margin-top: 0.4rem; overflow: hidden;
+  }
+  .progress-bar-inner {
+    height: 100%; background: var(--green); border-radius: 2px; transition: width 0.3s;
+  }
+
+  /* ── Main Area ── */
+  .main-area {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* ── Task Panel ── */
+  .task-panel {
+    padding: 1.5rem 2rem; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .task-panel .topic-title {
+    font-size: 1.3rem; color: #fff; font-weight: 700; margin-bottom: 0.2rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .task-panel .step-indicator {
+    font-size: 0.78rem; color: var(--muted); margin-bottom: 0.8rem;
+  }
+  .task-panel .instruction {
+    font-size: 0.95rem; color: var(--text); line-height: 1.6;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.2rem;
+  }
+  .task-panel .instruction strong { color: var(--accent); }
+  .task-panel .hint-box {
+    margin-top: 0.6rem; font-size: 0.82rem; color: var(--orange);
+    display: none;
+  }
+  .task-panel .hint-box.visible { display: block; }
+  .task-panel .btn-row {
+    display: flex; gap: 0.6rem; margin-top: 0.8rem;
+  }
+  .btn {
+    padding: 0.4rem 1rem; font-size: 0.82rem; font-weight: 600;
+    border: none; border-radius: var(--radius); cursor: pointer;
+    font-family: inherit; transition: all 0.15s;
+  }
+  .btn-hint { background: rgba(210,153,29,0.12); color: var(--orange); border: 1px solid rgba(210,153,29,0.3); }
+  .btn-hint:hover { background: rgba(210,153,29,0.2); }
+  .btn-next { background: var(--accent); color: #fff; }
+  .btn-next:hover { background: #4090e0; }
+  .btn-prev { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-prev:hover { border-color: var(--muted); }
+  .btn-reset { background: rgba(248,81,73,0.12); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+  .btn-reset:hover { background: rgba(248,81,73,0.2); }
+
+  /* ── Terminal ── */
+  .terminal-wrap {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+    margin: 0 2rem 1.5rem; border: 1px solid var(--border);
+    border-radius: var(--radius); background: var(--term-bg);
+  }
+  .terminal-bar {
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--border);
+    background: var(--surface); flex-shrink: 0;
+  }
+  .terminal-bar .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .dot.red { background: #f85149; }
+  .dot.yellow { background: #d2991d; }
+  .dot.green { background: #3fb950; }
+  .terminal-bar .title {
+    margin-left: 0.5rem; font-size: 0.75rem; color: var(--muted);
+  }
+  .terminal-output {
+    flex: 1; overflow-y: auto; padding: 1rem;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.88rem; line-height: 1.6; white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .terminal-output .line { margin-bottom: 0.1rem; }
+  .terminal-output .prompt { color: var(--green); }
+  .terminal-output .cmd-echo { color: var(--text); }
+  .terminal-output .out-success { color: var(--green); }
+  .terminal-output .out-info { color: var(--accent); }
+  .terminal-output .out-warn { color: var(--orange); }
+  .terminal-output .out-error { color: var(--red); }
+  .terminal-output .out-system { color: var(--muted); font-style: italic; }
+
+  .terminal-input-row {
+    display: flex; align-items: center; padding: 0.5rem 1rem;
+    border-top: 1px solid var(--border); flex-shrink: 0;
+  }
+  .terminal-input-row .prompt-symbol {
+    color: var(--green); font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.88rem; margin-right: 0.4rem; flex-shrink: 0;
+  }
+  .terminal-input-row input {
+    flex: 1; background: transparent; border: none; color: var(--text);
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.88rem; outline: none; caret-color: var(--accent);
+  }
+  .terminal-input-row input::placeholder { color: var(--muted); }
+
+  /* ── Completion ── */
+  .completion-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    z-index: 100; align-items: center; justify-content: center;
+  }
+  .completion-overlay.visible { display: flex; }
+  .completion-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 2.5rem; text-align: center;
+    max-width: 440px;
+  }
+  .completion-card .icon { font-size: 3.5rem; margin-bottom: 1rem; }
+  .completion-card h2 { color: #fff; font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .completion-card p { color: var(--muted); margin-bottom: 1.5rem; }
+
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+    .sidebar { width: 100%; max-height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
+    .layout { flex-direction: column; }
+    .terminal-wrap { margin: 0 1rem 1rem; }
+    .task-panel { padding: 1rem; }
+    nav { flex-wrap: wrap; justify-content: center; }
+    nav .logo { margin-right: 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">🚀 Hermes Deploy Guide</a>
+  <a href="index.html" class="nav-link">Home</a>
+  <a href="deploy.html" class="nav-link">Deploy</a>
+  <a href="commands.html" class="nav-link">Commands</a>
+  <a href="train.html" class="nav-link active">Train</a>
+  <a href="community.html" class="nav-link">Community</a>
+</nav>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <div class="sidebar">
+    <h3>📚 Training Modules</h3>
+    <div id="topicList"></div>
+    <div class="progress-bar-wrap">
+      <div style="display:flex;justify-content:space-between">
+        <span>Overall Progress</span>
+        <span id="progressText">0 / 28</span>
+      </div>
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- ── Main ── -->
+  <div class="main-area">
+    <div class="task-panel" id="taskPanel">
+      <div class="topic-title" id="topicTitle"></div>
+      <div class="step-indicator" id="stepIndicator"></div>
+      <div class="instruction" id="instruction"></div>
+      <div class="hint-box" id="hintBox"></div>
+      <div class="btn-row">
+        <button class="btn btn-prev" id="btnPrev" onclick="prevStep()">← Previous</button>
+        <button class="btn btn-hint" id="btnHint" onclick="showHint()">💡 Hint</button>
+        <button class="btn btn-next" id="btnNext" onclick="nextStep()" style="display:none">Next →</button>
+        <button class="btn btn-reset" id="btnReset" onclick="resetAll()">🔄 Reset All</button>
+      </div>
+    </div>
+
+    <div class="terminal-wrap">
+      <div class="terminal-bar">
+        <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+        <span class="title">hermes-terminal — training mode</span>
+      </div>
+      <div class="terminal-output" id="termOutput"></div>
+      <div class="terminal-input-row">
+        <span class="prompt-symbol" id="promptSymbol">$</span>
+        <input type="text" id="termInput" placeholder="Type a command and press Enter…" autofocus
+          onkeydown="if(event.key==='Enter')executeCommand()">
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Completion Overlay -->
+<div class="completion-overlay" id="completionOverlay">
+  <div class="completion-card">
+    <div class="icon">🎉</div>
+    <h2>Training Complete!</h2>
+    <p>You've mastered all 8 modules. You're ready to deploy, manage, and extend Hermes Agent like a pro.</p>
+    <button class="btn btn-next" onclick="document.getElementById('completionOverlay').classList.remove('visible')">Continue Training →</button>
+  </div>
+</div>
+
+<script>
+// ── Training Curriculum ──
+const CURRICULUM = [
+  {
+    id: 'profiles', icon: '👤', title: '1. Create Agent Profiles',
+    desc: 'Learn to create and manage isolated Hermes profiles for different projects.',
+    steps: [
+      {
+        instruction: 'Create a new Hermes profile called <strong>"work"</strong>. Profiles let you keep work and personal configurations separate.',
+        hint: 'Use <code>hermes profile create</code> followed by the profile name.',
+        answer: 'hermes profile create work',
+        success: 'Profile "work" created successfully! ✓',
+        output: 'Creating profile "work"...\n✅ Profile "work" created at ~/.hermes/profiles/work/\n   - Separate config.yaml\n   - Separate .env file\n   - Separate skills/ directory\n   - Separate session history',
+      },
+      {
+        instruction: 'List all your profiles to verify "work" was created. You should see at least "default" and "work".',
+        hint: 'Use <code>hermes profile list</code>.',
+        answer: 'hermes profile list',
+        success: 'Correct! You can see both profiles listed.',
+        output: 'Available profiles:\n  ▶ default    (active)\n    work       (created just now)\n\nUse `hermes --profile <name>` to switch.',
+      },
+      {
+        instruction: 'Switch to the "work" profile and check which profile is active.',
+        hint: 'Use <code>hermes profile use work</code> then <code>hermes profile show work</code>.',
+        answer: 'hermes profile show work',
+        success: 'You can see the details of the "work" profile.',
+        output: 'Profile: work\nPath: ~/.hermes/profiles/work/\nStatus: ready\n\nThis profile has its own config, skills, and memory.\nAnything you do with --profile work stays isolated.',
+      },
+    ]
+  },
+  {
+    id: 'multi-agent', icon: '🤖', title: '2. Run Multiple Agents',
+    desc: 'Spawn multiple Hermes instances with different roles working in parallel.',
+    steps: [
+      {
+        instruction: 'Start a Hermes session with the "work" profile. Use <strong>chat mode</strong> with a one-shot query to create a project scaffold.',
+        hint: 'Use <code>hermes --profile work chat -q "..."</code>.',
+        answer: 'hermes --profile work chat -q "Create a Python project structure for a web scraper"',
+        success: 'The agent created a project scaffold using the work profile!',
+        output: '[work] Hermes Agent v2.x\n[work] Working...\n\nCreated project structure:\n  scraper/\n  ├── src/__init__.py\n  ├── src/scraper.py\n  ├── requirements.txt\n  └── README.md\n\nSession saved under work profile.',
+      },
+      {
+        instruction: 'Now use delegation to spawn a sub-agent. In Hermes, you use <code>delegate_task</code>. Type the command to see how sub-agents are referenced in the system.',
+        hint: 'Type <code>hermes chat -q "delegate a task"</code>.',
+        answer: 'hermes chat -q "Use delegate_task to analyze the scraper code"',
+        success: 'Delegation works! Sub-agents run in isolated contexts.',
+        output: 'Spawning sub-agent...\n\n📋 Task: Analyze scraper code\n🔧 Tools: terminal, file\n⏱️ Status: running in isolated session\n\nSub-agent result:\n✅ Code analysis complete. Found 3 files, 0 errors.\n   Suggested improvements: add error handling, rate limiting.',
+      },
+      {
+        instruction: 'See all active agents and tasks. Type the slash command you would use inside a Hermes chat session.',
+        hint: 'The slash command starts with <code>/</code>.',
+        answer: '/agents',
+        success: 'Active agents listed! You can see all running sessions.',
+        output: 'Active Agents:\n  ▶ main (default) — current session\n  ▶ sub-agent-1 — analyzing scraper code [running]\n\nTotal: 2 agents\nUse /stop to kill background tasks.',
+      },
+    ]
+  },
+  {
+    id: 'github', icon: '🔗', title: '3. GitHub Connection',
+    desc: 'Connect Hermes to GitHub for PR reviews, issue management, and repo operations.',
+    steps: [
+      {
+        instruction: 'Authenticate with GitHub using the <strong>gh CLI</strong>. This gives Hermes access to your repos.',
+        hint: 'Use <code>gh auth login</code>.',
+        answer: 'gh auth login',
+        success: 'GitHub authentication initiated!',
+        output: '! First copy your one-time code: XXXX-XXXX\nOpening github.com/login/device...\n\n✓ Logged in as username\n✓ Git operations protocol: https\n✓ Token scopes: repo, workflow, gist\n\nHermes can now create PRs, review code, and manage issues.',
+      },
+      {
+        instruction: 'Clone a repository to your local machine. Try cloning the Hermes Agent repo.',
+        hint: '<code>git clone</code> followed by the repo URL.',
+        answer: 'git clone https://github.com/NousResearch/hermes-agent.git',
+        success: 'Repository cloned! Hermes can now work with this codebase.',
+        output: 'Cloning into \'hermes-agent\'...\nremote: Enumerating objects: 45231, done.\nremote: Counting objects: 100% (45231/45231), done.\nReceiving objects: 100% (45231/45231), 45.2 MiB\nResolving deltas: 100% (31240/31240), done.\n\n✅ Repo ready at ./hermes-agent/',
+      },
+      {
+        instruction: 'Create a new issue on the cloned repo. Use the <strong>gh issue create</strong> command with a title.',
+        hint: '<code>gh issue create --title "..." --body "..."</code>.',
+        answer: 'gh issue create --title "Test issue from training" --body "Learning Hermes GitHub integration"',
+        success: 'Issue created! Now try creating a PR in a real project.',
+        output: 'Creating issue in NousResearch/hermes-agent\n\n✅ Created issue #9999\n   Title: Test issue from training\n   URL: https://github.com/NousResearch/hermes-agent/issues/9999\n\nHermes can also review PRs — load the github-code-review skill!',
+      },
+    ]
+  },
+  {
+    id: 'messaging', icon: '💬', title: '4. Messaging Platforms',
+    desc: 'Connect Telegram, WeChat, and other platforms so you can talk to Hermes anywhere.',
+    steps: [
+      {
+        instruction: 'Start the gateway setup wizard. This lets you configure messaging platforms interactively.',
+        hint: '<code>hermes gateway setup</code>.',
+        answer: 'hermes gateway setup',
+        success: 'Gateway setup wizard launched!',
+        output: 'Gateway Setup Wizard\n━━━━━━━━━━━━━━━━━━\n\nAvailable platforms:\n  1. Telegram\n  2. Discord\n  3. Slack\n  4. WhatsApp\n  5. Signal\n  6. WeChat (Weixin)\n  7. Email\n  8. SMS\n  9. Matrix\n  10. More...\n\nSelect a platform to configure [1-10]:',
+      },
+      {
+        instruction: 'Configure Telegram by setting the bot token. Use <strong>hermes config set</strong> to set the Telegram token.',
+        hint: 'The config key is <code>gateway.telegram.token</code>.',
+        answer: 'hermes config set gateway.telegram.token YOUR_BOT_TOKEN',
+        success: 'Telegram token configured! Now start the gateway.',
+        output: '✅ gateway.telegram.token set\n\nNext: start the gateway with `hermes gateway run`\nor install as a background service with `hermes gateway install`',
+      },
+      {
+        instruction: 'Start the gateway to connect Hermes to your messaging apps.',
+        hint: '<code>hermes gateway run</code>.',
+        answer: 'hermes gateway run',
+        success: 'Gateway is running! Hermes is now reachable via messaging apps.',
+        output: 'Starting gateway...\n\n🚀 Gateway running on port 8080\n📱 Telegram: connected\n💬 1 platform(s) active\n\nSend a message to your bot on Telegram — Hermes will reply!\nPress Ctrl+C to stop.',
+      },
+    ]
+  },
+  {
+    id: 'browser', icon: '🌐', title: '5. Web Browsing',
+    desc: 'Use Hermes to browse the web, extract data, and interact with web pages.',
+    steps: [
+      {
+        instruction: 'Enable the browser toolset. This gives Hermes the ability to navigate and interact with web pages.',
+        hint: '<code>hermes tools enable browser</code>.',
+        answer: 'hermes tools enable browser',
+        success: 'Browser tools enabled! Restart your session to use them.',
+        output: '✅ browser toolset enabled\n\nAvailable browser tools:\n  - browser_navigate (open a URL)\n  - browser_click (click elements)\n  - browser_type (fill in forms)\n  - browser_snapshot (read page content)\n  - browser_scroll (scroll pages)\n\n⚠️ Restart your session for changes to take effect (/new)',
+      },
+      {
+        instruction: 'Use Hermes to fetch content from a URL. In a chat, you\'d ask: "Open example.com and tell me the page title." Type the corresponding browser command.',
+        hint: 'The command is <code>browser_navigate</code> with a URL.',
+        answer: 'browser_navigate https://example.com',
+        success: 'Page loaded! Hermes can now read and interact with web content.',
+        output: 'Navigating to https://example.com...\n\nPage loaded (200 OK)\nTitle: "Example Domain"\n\n[Snapshot: 12 interactive elements found]\n  @e1 - link "More information..."\n  @e2 - heading "Example Domain"\n  @e3 - paragraph (text content)\n\nYou can now use browser_click, browser_type, etc.',
+      },
+      {
+        instruction: 'Extract all images from a page. Use the command that lists images from the current page.',
+        hint: 'The command is <code>browser_get_images</code>.',
+        answer: 'browser_get_images',
+        success: 'Images extracted! Hermes can process visual content too.',
+        output: 'Found 3 images on the page:\n  1. https://example.com/logo.png (32x32)\n  2. https://example.com/hero.jpg (1200x600)\n  3. https://example.com/icon.svg (24x24)\n\nFor analyzing image content, use the vision tool.',
+      },
+    ]
+  },
+  {
+    id: 'files', icon: '📁', title: '6. File Management & Creation',
+    desc: 'Manage local files — create, read, edit, and search directly through Hermes.',
+    steps: [
+      {
+        instruction: 'Create a new Python script using Hermes. In a chat, say "Write a Python script at ~/hello.py that prints Hello World." Type the command Hermes would use internally.',
+        hint: 'Use <code>write_file</code> with a path and content.',
+        answer: 'write_file ~/hello.py "print(\'Hello, World!\')"',
+        success: 'File created! Hermes can write any type of file.',
+        output: '✍️ Writing to ~/hello.py...\n\n✅ File created (28 bytes)\n   Path: /Users/you/hello.py\n\nContent preview:\n  1| print(\'Hello, World!\')',
+      },
+      {
+        instruction: 'Read the file you just created to verify its contents.',
+        hint: '<code>read_file</code> with the path.',
+        answer: 'read_file ~/hello.py',
+        success: 'File contents verified!',
+        output: 'Reading ~/hello.py (1 lines):\n\n  1| print(\'Hello, World!\')\n\n✅ File read successfully.',
+      },
+      {
+        instruction: 'Search your home directory for all Python files. This is how Hermes finds relevant code in large projects.',
+        hint: 'Use <code>search_files</code> with a glob pattern.',
+        answer: 'search_files ~ "*.py" target=files',
+        success: 'Search complete! Hermes can find files by name or content.',
+        output: 'Searching ~/ for *.py files...\n\nFound 12 Python files:\n  hello.py (28 B, just now)\n  projects/scraper/src/scraper.py (1.2 KB)\n  projects/scraper/tests/test_scraper.py (856 B)\n  ... and 9 more\n\nUse search_files with target=content to search inside files.',
+      },
+    ]
+  },
+  {
+    id: 'dashboard', icon: '📊', title: '7. Dashboard & Status',
+    desc: 'Monitor Hermes health, check configuration, and view system status.',
+    steps: [
+      {
+        instruction: 'Run the Hermes diagnostic tool. This checks your installation and dependencies.',
+        hint: '<code>hermes doctor</code>.',
+        answer: 'hermes doctor',
+        success: 'System health check complete! All systems nominal.',
+        output: '🔍 Hermes Doctor — System Diagnostic\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n✅ Python 3.11+ detected (3.12.3)\n✅ Config file found (~/.hermes/config.yaml)\n✅ .env file present\n✅ Git installed (2.45.0)\n✅ gh CLI authenticated\n✅ Ollama running (localhost:11434)\n⚠️ 1 model downloaded (recommend 2+ for fallback)\n\nOverall: HEALTHY ✓',
+      },
+      {
+        instruction: 'Check the status of all Hermes components — gateway, cron, sessions.',
+        hint: '<code>hermes status</code> with <code>--all</code> flag.',
+        answer: 'hermes status --all',
+        success: 'Full status report generated!',
+        output: 'Hermes Status Report\n━━━━━━━━━━━━━━━━━━\n\nSession Store: ✅ 24 sessions (SQLite)\nGateway:       ✅ running (port 8080, 1 platform)\nCron:          ⬜ idle (0 active jobs)\nMemory:        ✅ enabled (built-in provider)\nSkills:        ✅ 18 skills loaded\nMCP Servers:   ⬜ none configured\n\nProfile: default',
+      },
+      {
+        instruction: 'View your current configuration. This shows all settings Hermes is using.',
+        hint: '<code>hermes config</code>.',
+        answer: 'hermes config',
+        success: 'Configuration displayed! You can see all your settings.',
+        output: 'Current Configuration (default profile)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nmodel:\n  default: llama3.1:8b\n  provider: ollama\n  base_url: http://localhost:11434\n\ngateway:\n  platforms: [telegram]\n  port: 8080\n\nagent:\n  max_turns: 90\n\n... (use hermes config edit to modify)',
+      },
+      {
+        instruction: 'View token usage statistics for your current session. Type the slash command.',
+        hint: 'It starts with <code>/</code>.',
+        answer: '/usage',
+        success: 'Usage stats shown! Keep an eye on costs when using cloud APIs.',
+        output: '📊 Session Usage\n━━━━━━━━━━━━━━\n\nInput tokens:  12,450\nOutput tokens: 3,210\nTotal:         15,660\n\nProvider: ollama (local)\nCost:          $0.00 (free!)\n\nSession duration: 8 minutes',
+      },
+    ]
+  },
+  {
+    id: 'sessions', icon: '💾', title: '8. Session Management',
+    desc: 'Start, resume, and manage Hermes conversations across multiple sessions.',
+    steps: [
+      {
+        instruction: 'Start a new Hermes session. This is the basic way to begin interacting with the agent.',
+        hint: 'Just type <code>hermes</code>.',
+        answer: 'hermes',
+        success: 'Session started! You are now chatting with Hermes.',
+        output: 'Starting Hermes Agent...\n\nModel: llama3.1:8b (ollama)\nSession: 20260524_143052_a1b2c3\n\nHello! I\'m Hermes, your AI agent. How can I help you today?\n\nType /help to see available commands.',
+      },
+      {
+        instruction: 'List your recent sessions. This shows all past conversations.',
+        hint: '<code>hermes sessions list</code>.',
+        answer: 'hermes sessions list',
+        success: 'Session history displayed!',
+        output: 'Recent Sessions:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n  1. 20260524_143052  "Initial setup"      (8 min ago)\n  2. 20260524_120115  "GitHub workflow"     (2 hours ago)\n  3. 20260523_093000  "Code review #42"     (1 day ago)\n  4. 20260522_180000  "Deploy guide edits"  (2 days ago)\n\nTotal: 4 sessions',
+      },
+      {
+        instruction: 'Resume the most recent session. Use the flag that lets you continue where you left off.',
+        hint: 'Use <code>hermes --continue</code> or <code>hermes -c</code>.',
+        answer: 'hermes --continue',
+        success: 'Session resumed! All context from your previous conversation is restored.',
+        output: 'Resuming session: 20260524_143052 "Initial setup"\n\nContext restored:\n  - 12 messages\n  - 3 file references\n  - Memory entries loaded\n\nWelcome back! You were working on setting up your profile.',
+      },
+      {
+        instruction: 'End the current session and start fresh. Type the slash command used inside Hermes chat.',
+        hint: 'The slash command is <code>/new</code> or <code>/reset</code>.',
+        answer: '/new',
+        success: 'Fresh session started! All previous context is cleared.',
+        output: '🗑️  Session cleared. Starting fresh.\n\nNew session: 20260524_150000_d4e5f6\nModel: llama3.1:8b (ollama)\n\nReady for a new task. What would you like to do?',
+      },
+    ]
+  },
+];
+
+// ── State ──
+let currentTopic = 0;
+let currentStep = 0;
+let completed = {};     // { 'topicId-stepIdx': true }
+let hintRevealed = {};  // { 'topicId-stepIdx': true }
+
+function loadState() {
+  const saved = localStorage.getItem('hermes_train_state');
+  if (saved) {
+    const s = JSON.parse(saved);
+    currentTopic = s.currentTopic || 0;
+    currentStep = s.currentStep || 0;
+    completed = s.completed || {};
+    hintRevealed = s.hintRevealed || {};
+  }
+}
+
+function saveState() {
+  localStorage.setItem('hermes_train_state', JSON.stringify({
+    currentTopic, currentStep, completed, hintRevealed
+  }));
+}
+
+// ── Render ──
+function renderAll() {
+  renderSidebar();
+  renderTask();
+  saveState();
+}
+
+function renderSidebar() {
+  const list = document.getElementById('topicList');
+  const totalSteps = CURRICULUM.reduce((s, t) => s + t.steps.length, 0);
+  const doneSteps = Object.keys(completed).length;
+
+  document.getElementById('progressText').textContent = `${doneSteps} / ${totalSteps}`;
+  document.getElementById('progressBar').style.width = totalSteps > 0 ? `${(doneSteps/totalSteps)*100}%` : '0%';
+
+  list.innerHTML = CURRICULUM.map((t, ti) => {
+    const topicDone = t.steps.every((_, si) => completed[`${ti}-${si}`]);
+    const isActive = ti === currentTopic;
+    return `
+      <div class="topic ${isActive ? 'active' : ''} ${topicDone ? 'done' : ''}"
+           onclick="selectTopic(${ti})">
+        <span class="check"></span>
+        <span class="label">${t.icon} ${t.title}</span>
+        ${topicDone ? '<span class="badge">done</span>' : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTask() {
+  const topic = CURRICULUM[currentTopic];
+  const step = topic.steps[currentStep];
+
+  document.getElementById('topicTitle').innerHTML = `${topic.icon} ${topic.title}`;
+  document.getElementById('stepIndicator').textContent =
+    `Step ${currentStep + 1} of ${topic.steps.length}`;
+  document.getElementById('instruction').innerHTML = step.instruction;
+
+  const hintBox = document.getElementById('hintBox');
+  hintBox.classList.toggle('visible', !!hintRevealed[`${currentTopic}-${currentStep}`]);
+  hintBox.innerHTML = hintRevealed[`${currentTopic}-${currentStep}`]
+    ? `💡 <strong>Hint:</strong> ${step.hint}` : '';
+
+  document.getElementById('btnNext').style.display =
+    completed[`${currentTopic}-${currentStep}`] ? 'inline-block' : 'none';
+
+  document.getElementById('btnPrev').style.display =
+    (currentTopic === 0 && currentStep === 0) ? 'none' : 'inline-block';
+
+  document.getElementById('termInput').value = '';
+  document.getElementById('termInput').focus();
+}
+
+function showHint() {
+  hintRevealed[`${currentTopic}-${currentStep}`] = true;
+  renderTask();
+}
+
+function executeCommand() {
+  const input = document.getElementById('termInput');
+  const cmd = input.value.trim();
+  if (!cmd) return;
+
+  const topic = CURRICULUM[currentTopic];
+  const step = topic.steps[currentStep];
+  const answer = step.answer;
+  const output = document.getElementById('termOutput');
+
+  // Echo the command
+  appendLine(output, `$ ${cmd}`, 'cmd-echo');
+
+  // Normalize: case-insensitive, collapse whitespace
+  const normalize = s => s.toLowerCase().replace(/\s+/g, ' ').trim();
+  const userCmd = normalize(cmd);
+  const expectedCmd = normalize(answer);
+
+  // Check if correct (exact match or contains the key parts)
+  const isCorrect = userCmd === expectedCmd ||
+    (expectedCmd.includes(' ') && userCmd.includes(expectedCmd.split(' ').slice(0, 2).join(' ')));
+
+  if (isCorrect) {
+    if (!completed[`${currentTopic}-${currentStep}`]) {
+      completed[`${currentTopic}-${currentStep}`] = true;
+    }
+    appendLine(output, step.success, 'out-success');
+    appendLine(output, step.output, 'out-info');
+
+    // Check if all steps in topic are done
+    const topicDone = topic.steps.every((_, si) => completed[`${currentTopic}-${si}`]);
+
+    // Check if all topics are done
+    const allDone = CURRICULUM.every((t, ti) =>
+      t.steps.every((_, si) => completed[`${ti}-${si}`])
+    );
+
+    if (allDone) {
+      setTimeout(() => {
+        document.getElementById('completionOverlay').classList.add('visible');
+      }, 600);
+    }
+  } else {
+    appendLine(output, `❌ Not quite. Expected something like:`, 'out-error');
+    appendLine(output, `   ${answer}`, 'out-warn');
+    // Auto-reveal hint
+    hintRevealed[`${currentTopic}-${currentStep}`] = true;
+  }
+
+  input.value = '';
+  renderAll();
+}
+
+function appendLine(container, text, cls) {
+  const div = document.createElement('div');
+  div.className = `line ${cls || ''}`;
+  div.innerHTML = text.replace(/\n/g, '<br>');
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function selectTopic(ti) {
+  currentTopic = ti;
+  currentStep = 0;
+  renderAll();
+}
+
+function nextStep() {
+  const topic = CURRICULUM[currentTopic];
+  if (currentStep < topic.steps.length - 1) {
+    currentStep++;
+  } else if (currentTopic < CURRICULUM.length - 1) {
+    currentTopic++;
+    currentStep = 0;
+  }
+  renderAll();
+}
+
+function prevStep() {
+  if (currentStep > 0) {
+    currentStep--;
+  } else if (currentTopic > 0) {
+    currentTopic--;
+    currentStep = CURRICULUM[currentTopic].steps.length - 1;
+  }
+  renderAll();
+}
+
+function resetAll() {
+  if (confirm('Reset all training progress? This cannot be undone.')) {
+    completed = {};
+    hintRevealed = {};
+    currentTopic = 0;
+    currentStep = 0;
+    document.getElementById('termOutput').innerHTML = '';
+    document.getElementById('completionOverlay').classList.remove('visible');
+    renderAll();
+  }
+}
+
+// ── Init ──
+loadState();
+renderAll();
+</script>
+
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hermes Deploy Guide — Run Your Own AI Agent, No Cloud Needed</title>
+<title data-i18n="title">Hermes Deploy Guide — Run Your Own AI Agent, No Cloud Needed</title>
 <style>
   :root {
     --bg: #0d1117; --surface: #161b22; --border: #30363d;
@@ -16,8 +16,6 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
   }
-
-  /* ── Nav ── */
   nav {
     background: var(--surface); border-bottom: 1px solid var(--border);
     padding: 0 1.5rem; display: flex; align-items: center; gap: 0;
@@ -33,8 +31,11 @@
     font-size: 0.9rem; border-bottom: 2px solid transparent; transition: all 0.15s;
   }
   nav a.nav-link:hover, nav a.nav-link.active { color: var(--text); border-bottom-color: var(--accent); }
-
-  /* ── Hero ── */
+  nav .lang-select {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 0.3rem 0.5rem; font-size: 0.8rem;
+    font-family: inherit; cursor: pointer; margin-left: 0.5rem;
+  }
   .hero {
     text-align: center; padding: 5rem 1.5rem 4rem;
     background: linear-gradient(180deg, rgba(88,166,255,0.06) 0%, transparent 100%);
@@ -54,8 +55,6 @@
   .btn-primary:hover { background: #4090e0; }
   .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
   .btn-secondary:hover { border-color: var(--muted); }
-
-  /* ── Features ── */
   section { max-width: 960px; margin: 0 auto; padding: 4rem 1.5rem; }
   section h2 { font-size: 1.8rem; color: #fff; text-align: center; margin-bottom: 2.5rem; }
   .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
@@ -68,8 +67,6 @@
   .feature-card .icon { font-size: 2.4rem; margin-bottom: 1rem; }
   .feature-card h3 { font-size: 1.1rem; color: #fff; margin-bottom: 0.5rem; }
   .feature-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.55; }
-
-  /* ── Steps Preview ── */
   .steps-preview { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
   .step-row {
     display: flex; align-items: flex-start; gap: 1.2rem; padding: 1.2rem 1.5rem;
@@ -83,8 +80,6 @@
   }
   .step-row h4 { font-size: 0.95rem; color: #fff; margin-bottom: 0.15rem; }
   .step-row p { font-size: 0.82rem; color: var(--muted); }
-
-  /* ── Testimonial-style quotes ── */
   .quote-box {
     background: rgba(88,166,255,0.04); border: 1px solid rgba(88,166,255,0.15);
     border-radius: var(--radius); padding: 1.5rem 2rem; text-align: center;
@@ -92,14 +87,11 @@
   }
   .quote-box p { font-size: 1rem; color: var(--text); font-style: italic; }
   .quote-box .attr { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
-
-  /* ── Footer ── */
   footer {
     text-align: center; padding: 2rem 1.5rem; border-top: 1px solid var(--border);
     color: var(--muted); font-size: 0.82rem;
   }
   footer a { color: var(--accent); text-decoration: none; }
-
   @media (max-width: 700px) {
     .feature-grid { grid-template-columns: 1fr; }
     .hero h1 { font-size: 1.8rem; }
@@ -111,118 +103,242 @@
 <body>
 
 <nav>
-  <a href="index.html" class="logo">🚀 Hermes Deploy Guide</a>
-  <a href="index.html" class="nav-link active">Home</a>
-  <a href="deploy.html" class="nav-link">Deploy</a>
-  <a href="commands.html" class="nav-link">Commands</a>
-  <a href="community.html" class="nav-link">Community</a>
+  <a href="index.html" class="logo">🚀 <span data-i18n="navTitle">Hermes Deploy Guide</span></a>
+  <a href="index.html" class="nav-link active" data-i18n="navHome">Home</a>
+  <a href="deploy.html" class="nav-link" data-i18n="navDeploy">Deploy</a>
+  <a href="commands.html" class="nav-link" data-i18n="navCommands">Commands</a>
+  <a href="train.html" class="nav-link" data-i18n="navTrain">Train</a>
+  <a href="community.html" class="nav-link" data-i18n="navCommunity">Community</a>
+  <select class="lang-select" onchange="setLanguage(this.value)">
+    <option value="en">🇺🇸 English</option>
+    <option value="zh">🇨🇳 简体中文</option>
+    <option value="ko">🇰🇷 한국어</option>
+    <option value="es">🇪🇸 Español</option>
+  </select>
 </nav>
 
 <div class="hero">
-  <h1>Run Your Own <span>AI Agent</span><br>No Cloud. No Tokens. All Yours.</h1>
-  <p class="tagline">
-    Deploy Hermes Agent with Ollama on your own computer. 
+  <h1 data-i18n="heroTitle">Run Your Own <span>AI Agent</span><br>No Cloud. No Tokens. All Yours.</h1>
+  <p class="tagline" data-i18n="heroTagline">
+    Deploy Hermes Agent with Ollama on your own computer.
     No API keys, no usage limits, no monthly bills — just you and your AI.
   </p>
   <div class="cta-row">
-    <a href="deploy.html" class="btn btn-primary">Start Deploying →</a>
-    <a href="commands.html" class="btn btn-secondary">Learn the Commands</a>
+    <a href="deploy.html" class="btn btn-primary" data-i18n="ctaDeploy">Start Deploying →</a>
+    <a href="commands.html" class="btn btn-secondary" data-i18n="ctaCommands">Learn the Commands</a>
   </div>
 </div>
 
 <section>
-  <h2>Why Run Your Agent Locally?</h2>
+  <h2 data-i18n="whyTitle">Why Run Your Agent Locally?</h2>
   <div class="feature-grid">
     <div class="feature-card">
       <div class="icon">🔒</div>
-      <h3>100% Private</h3>
-      <p>Your conversations, files, and data never leave your computer. No one sees your prompts or your code.</p>
+      <h3 data-i18n="why1Title">100% Private</h3>
+      <p data-i18n="why1Desc">Your conversations, files, and data never leave your computer. No one sees your prompts or your code.</p>
     </div>
     <div class="feature-card">
       <div class="icon">💰</div>
-      <h3>Zero Token Costs</h3>
-      <p>No API billing. No per-message charges. Run your agent 24/7 without ever looking at a usage dashboard.</p>
+      <h3 data-i18n="why2Title">Zero Token Costs</h3>
+      <p data-i18n="why2Desc">No API billing. No per-message charges. Run your agent 24/7 without ever looking at a usage dashboard.</p>
     </div>
     <div class="feature-card">
       <div class="icon">⚡</div>
-      <h3>Always Available</h3>
-      <p>No rate limits. No downtime. No "service unavailable." Your agent works even when your internet doesn't.</p>
+      <h3 data-i18n="why3Title">Always Available</h3>
+      <p data-i18n="why3Desc">No rate limits. No downtime. No "service unavailable." Your agent works even when your internet doesn't.</p>
     </div>
   </div>
 </section>
 
 <section>
-  <h2>What You'll Build</h2>
+  <h2 data-i18n="buildTitle">What You'll Build</h2>
   <div class="steps-preview">
     <div class="step-row">
       <div class="step-num">1</div>
-      <div>
-        <h4>Pick your setup</h4>
-        <p>Tell us your OS and hardware — we'll recommend the right model for your machine.</p>
-      </div>
+      <div><h4 data-i18n="step1Title">Pick your setup</h4><p data-i18n="step1Desc">Tell us your OS and hardware — we'll recommend the right model for your machine.</p></div>
     </div>
     <div class="step-row">
       <div class="step-num">2</div>
-      <div>
-        <h4>Install Ollama</h4>
-        <p>One download. Ollama runs open-source LLMs locally — free, fast, and private.</p>
-      </div>
+      <div><h4 data-i18n="step2Title">Install Ollama</h4><p data-i18n="step2Desc">One download. Ollama runs open-source LLMs locally — free, fast, and private.</p></div>
     </div>
     <div class="step-row">
       <div class="step-num">3</div>
-      <div>
-        <h4>Download a model</h4>
-        <p>Choose from 14+ models based on your hardware. One command to pull. Ready in minutes.</p>
-      </div>
+      <div><h4 data-i18n="step3Title">Download a model</h4><p data-i18n="step3Desc">Choose from 14+ models based on your hardware. One command to pull. Ready in minutes.</p></div>
     </div>
     <div class="step-row">
       <div class="step-num">4</div>
-      <div>
-        <h4>Install Hermes</h4>
-        <p>A single curl command. Then <code>hermes setup</code> — point it at Ollama and you're done.</p>
-      </div>
+      <div><h4 data-i18n="step4Title">Install Hermes</h4><p data-i18n="step4Desc">A single curl command. Then <code>hermes setup</code> — point it at Ollama and you're done.</p></div>
     </div>
     <div class="step-row">
       <div class="step-num">5</div>
-      <div>
-        <h4>Connect your messaging apps</h4>
-        <p>Talk to Hermes from Telegram or WeChat. It's your agent, anywhere you are.</p>
-      </div>
+      <div><h4 data-i18n="step5Title">Connect your messaging apps</h4><p data-i18n="step5Desc">Talk to Hermes from Telegram or WeChat. It's your agent, anywhere you are.</p></div>
     </div>
   </div>
-
   <div class="quote-box">
-    <p>"I thought AI agents needed expensive cloud subscriptions. Turned out my laptop was all I needed."</p>
-    <div class="attr">— You, after following this guide</div>
+    <p data-i18n="quote">"I thought AI agents needed expensive cloud subscriptions. Turned out my laptop was all I needed."</p>
+    <div class="attr" data-i18n="quoteAttr">— You, after following this guide</div>
   </div>
 </section>
 
 <section>
-  <h2>Who Is This For?</h2>
+  <h2 data-i18n="whoTitle">Who Is This For?</h2>
   <div class="feature-grid">
     <div class="feature-card">
       <div class="icon">🧑‍💻</div>
-      <h3>Developers</h3>
-      <p>An AI pair programmer that reads your entire codebase, runs tests, opens PRs — no API limits.</p>
+      <h3 data-i18n="who1Title">Developers</h3>
+      <p data-i18n="who1Desc">An AI pair programmer that reads your entire codebase, runs tests, opens PRs — no API limits.</p>
     </div>
     <div class="feature-card">
       <div class="icon">📊</div>
-      <h3>Analysts & Researchers</h3>
-      <p>Process documents, summarize papers, analyze data — privately, with no data leaving your machine.</p>
+      <h3 data-i18n="who2Title">Analysts & Researchers</h3>
+      <p data-i18n="who2Desc">Process documents, summarize papers, analyze data — privately, with no data leaving your machine.</p>
     </div>
     <div class="feature-card">
       <div class="icon">🏠</div>
-      <h3>Curious Learners</h3>
-      <p>Never used a terminal before? Our step-by-step guide and command reference will get you comfortable fast.</p>
+      <h3 data-i18n="who3Title">Curious Learners</h3>
+      <p data-i18n="who3Desc">Never used a terminal before? Our step-by-step guide and command reference will get you comfortable fast.</p>
     </div>
   </div>
 </section>
 
 <footer>
-  Built with ❤️ to help people own their AI · 
-  <a href="https://github.com/NousResearch/hermes-agent" target="_blank">Hermes Agent</a> · 
+  <span data-i18n="footerBuilt">Built with ❤️ to help people own their AI</span> ·
+  <a href="https://github.com/NousResearch/hermes-agent" target="_blank">Hermes Agent</a> ·
   <a href="https://ollama.com" target="_blank">Ollama</a>
 </footer>
+
+<script>
+const I18N = {
+  en: {
+    title: "Hermes Deploy Guide — Run Your Own AI Agent, No Cloud Needed",
+    navTitle: "Hermes Deploy Guide",
+    navHome: "Home", navDeploy: "Deploy", navCommands: "Commands",
+    navTrain: "Train", navCommunity: "Community",
+    heroTitle: 'Run Your Own <span>AI Agent</span><br>No Cloud. No Tokens. All Yours.',
+    heroTagline: "Deploy Hermes Agent with Ollama on your own computer. No API keys, no usage limits, no monthly bills — just you and your AI.",
+    ctaDeploy: "Start Deploying →", ctaCommands: "Learn the Commands",
+    whyTitle: "Why Run Your Agent Locally?",
+    why1Title: "100% Private", why1Desc: "Your conversations, files, and data never leave your computer. No one sees your prompts or your code.",
+    why2Title: "Zero Token Costs", why2Desc: "No API billing. No per-message charges. Run your agent 24/7 without ever looking at a usage dashboard.",
+    why3Title: "Always Available", why3Desc: 'No rate limits. No downtime. No "service unavailable." Your agent works even when your internet doesn\'t.',
+    buildTitle: "What You'll Build",
+    step1Title: "Pick your setup", step1Desc: "Tell us your OS and hardware — we'll recommend the right model for your machine.",
+    step2Title: "Install Ollama", step2Desc: "One download. Ollama runs open-source LLMs locally — free, fast, and private.",
+    step3Title: "Download a model", step3Desc: "Choose from 14+ models based on your hardware. One command to pull. Ready in minutes.",
+    step4Title: "Install Hermes", step4Desc: "A single curl command. Then <code>hermes setup</code> — point it at Ollama and you're done.",
+    step5Title: "Connect your messaging apps", step5Desc: "Talk to Hermes from Telegram or WeChat. It's your agent, anywhere you are.",
+    quote: '"I thought AI agents needed expensive cloud subscriptions. Turned out my laptop was all I needed."',
+    quoteAttr: "— You, after following this guide",
+    whoTitle: "Who Is This For?",
+    who1Title: "Developers", who1Desc: "An AI pair programmer that reads your entire codebase, runs tests, opens PRs — no API limits.",
+    who2Title: "Analysts & Researchers", who2Desc: "Process documents, summarize papers, analyze data — privately, with no data leaving your machine.",
+    who3Title: "Curious Learners", who3Desc: "Never used a terminal before? Our step-by-step guide and command reference will get you comfortable fast.",
+    footerBuilt: "Built with ❤️ to help people own their AI",
+  },
+  zh: {
+    title: "Hermes 部署指南 — 运行你自己的 AI 代理，无需云端",
+    navTitle: "Hermes 部署指南",
+    navHome: "首页", navDeploy: "部署", navCommands: "命令",
+    navTrain: "训练", navCommunity: "社区",
+    heroTitle: '运行你自己的 <span>AI 代理</span><br>无需云端 · 无需 Token · 完全属于你',
+    heroTagline: "在你自己的电脑上使用 Ollama 部署 Hermes Agent。无需 API Key，无使用限制，无月费 — 只有你和你的 AI。",
+    ctaDeploy: "开始部署 →", ctaCommands: "学习命令",
+    whyTitle: "为什么要在本地运行代理？",
+    why1Title: "100% 隐私", why1Desc: "你的对话、文件和数据永远不会离开你的电脑。没有人能看到你的提示词或代码。",
+    why2Title: "零 Token 费用", why2Desc: "没有 API 计费，没有按条收费。全天候运行你的代理，无需查看用量面板。",
+    why3Title: "始终可用", why3Desc: "没有速率限制，不会宕机。即使没有网络，你的代理也能正常工作。",
+    buildTitle: "你将构建什么",
+    step1Title: "选择你的配置", step1Desc: "告诉我们你的操作系统和硬件 — 我们会为你的机器推荐合适的模型。",
+    step2Title: "安装 Ollama", step2Desc: "一键下载。Ollama 在本地运行开源大模型 — 免费、快速、私密。",
+    step3Title: "下载模型", step3Desc: "根据你的硬件从 14+ 个模型中选择。一条命令即可拉取，几分钟内就绪。",
+    step4Title: "安装 Hermes", step4Desc: '一条 curl 命令，然后 <code>hermes setup</code> — 指向 Ollama 就完成了。',
+    step5Title: "连接消息应用", step5Desc: "通过 Telegram 或微信与 Hermes 对话。你的代理，随时随地。",
+    quote: '"我以为 AI 代理需要昂贵的云订阅。结果发现我的笔记本就够了。"',
+    quoteAttr: "— 你，跟随本指南之后",
+    whoTitle: "适合谁？",
+    who1Title: "开发者", who1Desc: "一个能阅读整个代码库、运行测试、创建 PR 的 AI 配对程序员 — 没有 API 限制。",
+    who2Title: "分析师和研究人员", who2Desc: "处理文档、总结论文、分析数据 — 全部私密，数据不会离开你的电脑。",
+    who3Title: "好奇的学习者", who3Desc: "从没用过终端？我们的分步指南和命令参考会让你快速上手。",
+    footerBuilt: "用 ❤️ 构建，帮助人们拥有自己的 AI",
+  },
+  ko: {
+    title: "Hermes 배포 가이드 — 나만의 AI 에이전트를 클라우드 없이 실행하세요",
+    navTitle: "Hermes 배포 가이드",
+    navHome: "홈", navDeploy: "배포", navCommands: "명령어",
+    navTrain: "훈련", navCommunity: "커뮤니티",
+    heroTitle: '나만의 <span>AI 에이전트</span>를 실행하세요<br>클라우드 없이 · 토큰 없이 · 완전히 당신의 것',
+    heroTagline: "자신의 컴퓨터에서 Ollama로 Hermes Agent를 배포하세요. API 키도, 사용량 제한도, 월 구독료도 없이 — 당신과 AI만 있으면 됩니다.",
+    ctaDeploy: "배포 시작하기 →", ctaCommands: "명령어 배우기",
+    whyTitle: "왜 로컬에서 에이전트를 실행해야 할까요?",
+    why1Title: "100% 개인정보 보호", why1Desc: "대화, 파일, 데이터가 컴퓨터를 떠나지 않습니다. 누구도 당신의 프롬프트나 코드를 볼 수 없습니다.",
+    why2Title: "토큰 비용 제로", why2Desc: "API 과금이 없습니다. 메시지당 요금도 없습니다. 사용량 대시보드를 볼 필요 없이 24/7 에이전트를 실행하세요.",
+    why3Title: "항상 사용 가능", why3Desc: "속도 제한이 없습니다. 다운타임도 없습니다. 인터넷이 없어도 에이전트가 작동합니다.",
+    buildTitle: "무엇을 만들게 될까요",
+    step1Title: "설정 선택하기", step1Desc: "OS와 하드웨어를 알려주세요 — 기기에 맞는 모델을 추천해 드립니다.",
+    step2Title: "Ollama 설치", step2Desc: "한 번의 다운로드. Ollama는 오픈소스 LLM을 로컬에서 실행합니다 — 무료, 빠름, 비공개.",
+    step3Title: "모델 다운로드", step3Desc: "하드웨어에 따라 14개 이상의 모델 중에서 선택하세요. 한 줄의 명령어로 받을 수 있습니다.",
+    step4Title: "Hermes 설치", step4Desc: 'curl 명령어 한 줄. 그다음 <code>hermes setup</code> — Ollama를 지정하면 끝입니다.',
+    step5Title: "메시징 앱 연결", step5Desc: "Telegram이나 WeChat으로 Hermes와 대화하세요. 어디서든 당신의 에이전트입니다.",
+    quote: '"AI 에이전트는 비싼 클라우드 구독이 필요할 줄 알았는데, 제 노트북으로 충분했어요."',
+    quoteAttr: "— 이 가이드를 따라한 당신",
+    whoTitle: "누구를 위한 가이드인가요?",
+    who1Title: "개발자", who1Desc: "전체 코드베이스를 읽고, 테스트를 실행하고, PR을 열어주는 AI 페어 프로그래머 — API 제한 없이.",
+    who2Title: "분석가 및 연구원", who2Desc: "문서 처리, 논문 요약, 데이터 분석 — 모두 비공개로, 데이터는 컴퓨터를 떠나지 않습니다.",
+    who3Title: "호기심 많은 학습자", who3Desc: "터미널을 한 번도 사용해본 적 없나요? 단계별 가이드와 명령어 참조로 빠르게 익숙해질 수 있습니다.",
+    footerBuilt: "사람들이 자신의 AI를 소유할 수 있도록 ❤️로 제작",
+  },
+  es: {
+    title: "Guía de Despliegue de Hermes — Ejecuta tu Propio Agente de IA, Sin Nube",
+    navTitle: "Guía de Hermes",
+    navHome: "Inicio", navDeploy: "Desplegar", navCommands: "Comandos",
+    navTrain: "Entrenar", navCommunity: "Comunidad",
+    heroTitle: 'Ejecuta tu Propio <span>Agente de IA</span><br>Sin Nube. Sin Tokens. Todo Tuyo.',
+    heroTagline: "Despliega Hermes Agent con Ollama en tu propio ordenador. Sin claves API, sin límites de uso, sin facturas mensuales — solo tú y tu IA.",
+    ctaDeploy: "Comenzar a Desplegar →", ctaCommands: "Aprender Comandos",
+    whyTitle: "¿Por qué ejecutar tu agente localmente?",
+    why1Title: "100% Privado", why1Desc: "Tus conversaciones, archivos y datos nunca salen de tu ordenador. Nadie ve tus prompts ni tu código.",
+    why2Title: "Cero Costes de Tokens", why2Desc: "Sin facturación de API. Sin cargos por mensaje. Ejecuta tu agente 24/7 sin mirar un panel de uso.",
+    why3Title: "Siempre Disponible", why3Desc: 'Sin límites de velocidad. Sin tiempo de inactividad. Sin "servicio no disponible". Tu agente funciona incluso sin internet.',
+    buildTitle: "Lo que construirás",
+    step1Title: "Elige tu configuración", step1Desc: "Dinos tu sistema operativo y hardware — te recomendaremos el modelo adecuado.",
+    step2Title: "Instalar Ollama", step2Desc: "Una descarga. Ollama ejecuta LLMs de código abierto localmente — gratis, rápido y privado.",
+    step3Title: "Descargar un modelo", step3Desc: "Elige entre más de 14 modelos según tu hardware. Un comando para descargar. Listo en minutos.",
+    step4Title: "Instalar Hermes", step4Desc: 'Un solo comando curl. Luego <code>hermes setup</code> — apúntalo a Ollama y listo.',
+    step5Title: "Conecta tus aplicaciones de mensajería", step5Desc: "Habla con Hermes desde Telegram o WeChat. Es tu agente, donde sea que estés.",
+    quote: '"Pensé que los agentes de IA necesitaban costosas suscripciones en la nube. Resultó que mi portátil era todo lo que necesitaba."',
+    quoteAttr: "— Tú, después de seguir esta guía",
+    whoTitle: "¿Para quién es esto?",
+    who1Title: "Desarrolladores", who1Desc: "Un programador par de IA que lee todo tu código, ejecuta pruebas, abre PRs — sin límites de API.",
+    who2Title: "Analistas e Investigadores", who2Desc: "Procesa documentos, resume artículos, analiza datos — de forma privada, sin que los datos salgan de tu máquina.",
+    who3Title: "Estudiantes Curiosos", who3Desc: "¿Nunca has usado una terminal? Nuestra guía paso a paso y referencia de comandos te pondrán al día rápidamente.",
+    footerBuilt: "Construido con ❤️ para ayudar a las personas a poseer su IA",
+  },
+};
+
+function setLanguage(lang) {
+  localStorage.setItem('hermes_lang', lang);
+  document.documentElement.lang = lang;
+  document.querySelector('.lang-select').value = lang;
+
+  const dict = I18N[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) {
+      if (dict[key].includes('<span>') || dict[key].includes('<code>')) {
+        el.innerHTML = dict[key];
+      } else {
+        el.textContent = dict[key];
+      }
+    }
+  });
+  // Update page title
+  document.title = dict.title || document.title;
+}
+
+// Init from saved preference
+const savedLang = localStorage.getItem('hermes_lang') || 'en';
+setLanguage(savedLang);
+</script>
 
 </body>
 </html>
