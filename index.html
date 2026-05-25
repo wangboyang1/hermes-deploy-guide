@@ -3,719 +3,226 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deploy Hermes with Ollama — Step-by-Step Guide</title>
+<title>Hermes Deploy Guide — Run Your Own AI Agent, No Cloud Needed</title>
 <style>
   :root {
-    --bg: #0d1117;
-    --surface: #161b22;
-    --border: #30363d;
-    --text: #c9d1d9;
-    --muted: #8b949e;
-    --accent: #58a6ff;
-    --green: #3fb950;
-    --orange: #d2991d;
-    --red: #f85149;
-    --purple: #a371f7;
-    --code-bg: #0d1117;
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --orange: #d2991d; --purple: #a371f7;
     --radius: 8px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg); color: var(--text);
-    line-height: 1.6; min-height: 100vh;
+    background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
   }
 
-  /* ── Header ── */
-  header {
+  /* ── Nav ── */
+  nav {
     background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 2rem 1.5rem; text-align: center;
+    padding: 0 1.5rem; display: flex; align-items: center; gap: 0;
+    position: sticky; top: 0; z-index: 10;
   }
-  header h1 { font-size: 2rem; font-weight: 700; color: #fff; }
-  header p  { color: var(--muted); margin-top: 0.35rem; font-size: 1.05rem; }
+  nav .logo {
+    font-weight: 700; font-size: 1.1rem; color: #fff;
+    text-decoration: none; padding: 1rem 0; margin-right: auto;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  nav a.nav-link {
+    color: var(--muted); text-decoration: none; padding: 1rem 1rem;
+    font-size: 0.9rem; border-bottom: 2px solid transparent; transition: all 0.15s;
+  }
+  nav a.nav-link:hover, nav a.nav-link.active { color: var(--text); border-bottom-color: var(--accent); }
 
-  /* ── Progress Bar ── */
-  .progress-wrap {
-    max-width: 780px; margin: 1.5rem auto 0; padding: 0 1.5rem;
-    display: flex; gap: 0; align-items: center;
+  /* ── Hero ── */
+  .hero {
+    text-align: center; padding: 5rem 1.5rem 4rem;
+    background: linear-gradient(180deg, rgba(88,166,255,0.06) 0%, transparent 100%);
+    border-bottom: 1px solid var(--border);
   }
-  .progress-step {
-    flex: 1; text-align: center; font-size: 0.8rem; color: var(--muted);
-    position: relative; padding-top: 1.1rem;
-  }
-  .progress-step::before {
-    content: ''; position: absolute; top: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 14px; height: 14px; border-radius: 50%;
-    background: var(--border); border: 2px solid var(--border);
-    z-index: 1;
-  }
-  .progress-step.active { color: var(--accent); font-weight: 600; }
-  .progress-step.active::before { background: var(--accent); border-color: var(--accent); }
-  .progress-step.done { color: var(--green); }
-  .progress-step.done::before { background: var(--green); border-color: var(--green); }
-  .progress-line {
-    flex: 0.4; height: 2px; background: var(--border);
-    margin-top: -0.9rem;
-  }
-  .progress-line.done { background: var(--green); }
-
-  /* ── Main Layout ── */
-  main { max-width: 820px; margin: 2rem auto; padding: 0 1.5rem 4rem; }
-
-  .step { display: none; }
-  .step.visible { display: block; }
-
-  .card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 1.8rem; margin-bottom: 1.5rem;
-  }
-  .card h2 {
-    font-size: 1.35rem; margin-bottom: 0.4rem; color: #fff;
-    display: flex; align-items: center; gap: 0.5rem;
-  }
-  .card h2 .num {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px; border-radius: 50%;
-    background: var(--accent); color: #fff; font-size: 0.85rem; font-weight: 700;
-    flex-shrink: 0;
-  }
-  .card .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.2rem; }
-
-  /* ── OS Cards ── */
-  .os-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-  .os-card {
-    background: var(--bg); border: 2px solid var(--border);
-    border-radius: var(--radius); padding: 1.5rem 1rem;
-    text-align: center; cursor: pointer; transition: all 0.15s;
-  }
-  .os-card:hover { border-color: var(--muted); }
-  .os-card.selected { border-color: var(--accent); background: rgba(88,166,255,0.06); }
-  .os-card .icon { font-size: 2.2rem; margin-bottom: 0.5rem; }
-  .os-card .name { font-weight: 600; font-size: 1rem; }
-  .os-card .arch { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
-
-  /* ── Spec Inputs ── */
-  .spec-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.8rem; }
-  label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.3rem; }
-  select, input[type=text] {
-    width: 100%; padding: 0.6rem 0.8rem; font-size: 0.95rem;
-    background: var(--bg); color: var(--text);
-    border: 1px solid var(--border); border-radius: var(--radius);
-    font-family: inherit;
-  }
-  select:focus, input:focus { outline: none; border-color: var(--accent); }
-
-  .spec-summary {
-    margin-top: 1rem; padding: 0.8rem 1rem;
-    background: rgba(88,166,255,0.06); border: 1px solid rgba(88,166,255,0.2);
-    border-radius: var(--radius); font-size: 0.88rem; color: var(--accent);
-  }
-
-  /* ── Code Blocks ── */
-  .code-block {
-    position: relative; background: var(--code-bg);
-    border: 1px solid var(--border); border-radius: var(--radius);
-    margin: 0.8rem 0; overflow: hidden;
-  }
-  .code-block .lang-tag {
-    position: absolute; top: 0; right: 0;
-    font-size: 0.7rem; color: var(--muted);
-    padding: 0.25rem 0.6rem;
-    background: var(--surface); border-radius: 0 0 0 var(--radius);
-  }
-  .code-block pre {
-    padding: 1rem; margin: 0; overflow-x: auto;
-    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-    font-size: 0.88rem; line-height: 1.55; white-space: pre-wrap; word-break: break-all;
-  }
-  .copy-btn {
-    position: absolute; top: 0.45rem; right: 3.5rem;
-    background: var(--surface); border: 1px solid var(--border);
-    color: var(--muted); font-size: 0.72rem; padding: 0.2rem 0.55rem;
-    border-radius: 4px; cursor: pointer; font-family: inherit;
-    transition: all 0.15s;
-  }
-  .copy-btn:hover { color: var(--text); border-color: var(--muted); }
-  .copy-btn.copied { color: var(--green); border-color: var(--green); }
-
-  /* ── Model Cards ── */
-  .model-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
-  .model-card {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 1.2rem;
-    cursor: pointer; transition: all 0.15s;
-  }
-  .model-card:hover { border-color: var(--muted); }
-  .model-card.recommended { border-color: var(--green); background: rgba(63,185,80,0.05); }
-  .model-card.recommended::after {
-    content: '★ Recommended'; display: block; margin-top: 0.5rem;
-    font-size: 0.72rem; color: var(--green); font-weight: 600;
-  }
-  .model-card .m-name { font-weight: 700; font-size: 1.05rem; color: #fff; }
-  .model-card .m-size { font-size: 0.8rem; color: var(--muted); }
-  .model-card .m-desc { font-size: 0.82rem; margin-top: 0.35rem; color: var(--text); }
-  .model-card .m-req { font-size: 0.75rem; color: var(--orange); margin-top: 0.3rem; }
-
-  /* ── Buttons ── */
+  .hero h1 { font-size: 2.6rem; font-weight: 800; color: #fff; line-height: 1.2; }
+  .hero h1 span { color: var(--accent); }
+  .hero p.tagline { font-size: 1.2rem; color: var(--muted); margin-top: 1rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .hero .cta-row { margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
   .btn {
     display: inline-flex; align-items: center; gap: 0.4rem;
-    padding: 0.7rem 1.5rem; font-size: 0.95rem; font-weight: 600;
+    padding: 0.75rem 1.8rem; font-size: 1rem; font-weight: 600;
     border: none; border-radius: var(--radius); cursor: pointer;
-    font-family: inherit; transition: all 0.15s;
+    font-family: inherit; text-decoration: none; transition: all 0.15s;
   }
   .btn-primary { background: var(--accent); color: #fff; }
   .btn-primary:hover { background: #4090e0; }
   .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
   .btn-secondary:hover { border-color: var(--muted); }
-  .btn-row { display: flex; gap: 0.8rem; margin-top: 1.2rem; }
 
-  /* ── Note boxes ── */
-  .note {
-    background: rgba(163,113,247,0.08); border: 1px solid rgba(163,113,247,0.25);
-    border-radius: var(--radius); padding: 0.8rem 1rem; font-size: 0.85rem;
-    margin-top: 1rem;
+  /* ── Features ── */
+  section { max-width: 960px; margin: 0 auto; padding: 4rem 1.5rem; }
+  section h2 { font-size: 1.8rem; color: #fff; text-align: center; margin-bottom: 2.5rem; }
+  .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .feature-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 2rem 1.5rem; text-align: center;
+    transition: border-color 0.15s;
   }
-  .note strong { color: var(--purple); }
+  .feature-card:hover { border-color: var(--accent); }
+  .feature-card .icon { font-size: 2.4rem; margin-bottom: 1rem; }
+  .feature-card h3 { font-size: 1.1rem; color: #fff; margin-bottom: 0.5rem; }
+  .feature-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.55; }
 
-  .warn {
-    background: rgba(210,153,29,0.08); border: 1px solid rgba(210,153,29,0.25);
-    border-radius: var(--radius); padding: 0.8rem 1rem; font-size: 0.85rem;
-    margin-top: 1rem;
+  /* ── Steps Preview ── */
+  .steps-preview { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+  .step-row {
+    display: flex; align-items: flex-start; gap: 1.2rem; padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
   }
-  .warn strong { color: var(--orange); }
-
-  .success-box {
-    background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.25);
-    border-radius: var(--radius); padding: 0.8rem 1rem; font-size: 0.85rem;
-    margin-top: 1rem;
+  .step-row:last-child { border-bottom: none; }
+  .step-num {
+    flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent); color: #fff; display: flex; align-items: center;
+    justify-content: center; font-weight: 700; font-size: 0.9rem;
   }
-  .success-box strong { color: var(--green); }
+  .step-row h4 { font-size: 0.95rem; color: #fff; margin-bottom: 0.15rem; }
+  .step-row p { font-size: 0.82rem; color: var(--muted); }
 
-  /* ── Platform tabs ── */
-  .tabs { display: flex; gap: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
-  .tab {
-    padding: 0.55rem 1.2rem; font-size: 0.88rem; cursor: pointer;
-    background: none; border: none; color: var(--muted);
-    font-family: inherit; border-bottom: 2px solid transparent;
-    transition: all 0.15s;
+  /* ── Testimonial-style quotes ── */
+  .quote-box {
+    background: rgba(88,166,255,0.04); border: 1px solid rgba(88,166,255,0.15);
+    border-radius: var(--radius); padding: 1.5rem 2rem; text-align: center;
+    max-width: 640px; margin: 3rem auto 0;
   }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab:hover { color: var(--text); }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+  .quote-box p { font-size: 1rem; color: var(--text); font-style: italic; }
+  .quote-box .attr { font-size: 0.82rem; color: var(--muted); margin-top: 0.5rem; }
 
-  /* ── Responsive ── */
-  @media (max-width: 640px) {
-    .os-grid { grid-template-columns: 1fr; }
-    .spec-row { grid-template-columns: 1fr; }
-    .model-grid { grid-template-columns: 1fr; }
+  /* ── Footer ── */
+  footer {
+    text-align: center; padding: 2rem 1.5rem; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 0.82rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 700px) {
+    .feature-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 1.8rem; }
+    nav { flex-wrap: wrap; justify-content: center; }
+    nav .logo { margin-right: 0; }
   }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>🚀 Deploy Hermes Agent with Ollama</h1>
-  <p>A step-by-step guide to running your own local AI agent, start to finish</p>
-</header>
+<nav>
+  <a href="index.html" class="logo">🚀 Hermes Deploy Guide</a>
+  <a href="index.html" class="nav-link active">Home</a>
+  <a href="deploy.html" class="nav-link">Deploy</a>
+  <a href="commands.html" class="nav-link">Commands</a>
+  <a href="community.html" class="nav-link">Community</a>
+</nav>
 
-<div class="progress-wrap" id="progressBar"></div>
+<div class="hero">
+  <h1>Run Your Own <span>AI Agent</span><br>No Cloud. No Tokens. All Yours.</h1>
+  <p class="tagline">
+    Deploy Hermes Agent with Ollama on your own computer. 
+    No API keys, no usage limits, no monthly bills — just you and your AI.
+  </p>
+  <div class="cta-row">
+    <a href="deploy.html" class="btn btn-primary">Start Deploying →</a>
+    <a href="commands.html" class="btn btn-secondary">Learn the Commands</a>
+  </div>
+</div>
 
-<main id="main">
-  <!-- Steps injected by JS -->
-</main>
-
-<script>
-// ── State ──
-const state = {
-  currentStep: 1, totalSteps: 5,
-  os: null,   // 'macos' | 'windows' | 'linux'
-  ram: null,  // GB number
-  gpu: null,  // 'none' | 'apple-silicon' | 'nvidia-4gb' | 'nvidia-8gb' | 'nvidia-12gb+' | 'amd'
-};
-
-// ── Model DB ──
-const MODELS = [
-  { name: 'llama3.2:3b',    size: '2.0 GB', minRam: 8,  gpu: null, desc: 'Fast, lightweight. Great for basic tasks and low-resource machines.', tier: 'entry' },
-  { name: 'gemma2:2b',      size: '1.6 GB', minRam: 8,  gpu: null, desc: 'Google\'s tiny powerhouse. Smallest viable option.', tier: 'entry' },
-  { name: 'phi3:mini',      size: '2.3 GB', minRam: 8,  gpu: null, desc: 'Microsoft\'s compact model. Strong reasoning for its size.', tier: 'entry' },
-  { name: 'qwen2.5:3b',     size: '1.9 GB', minRam: 8,  gpu: null, desc: 'AliBaba\'s efficient 3B model. Solid multilingual support.', tier: 'entry' },
-  { name: 'llama3.1:8b',    size: '4.7 GB', minRam: 16, gpu: null, desc: 'The sweet spot. Great balance of speed and capability.', tier: 'mid' },
-  { name: 'mistral:7b',     size: '4.1 GB', minRam: 16, gpu: null, desc: 'Mistral\'s flagship 7B. Excellent coding and reasoning.', tier: 'mid' },
-  { name: 'qwen2.5:7b',     size: '4.4 GB', minRam: 16, gpu: null, desc: 'Strong all-rounder with great multilingual performance.', tier: 'mid' },
-  { name: 'gemma2:9b',      size: '5.4 GB', minRam: 16, gpu: null, desc: 'Google\'s 9B model. Excellent quality/size ratio.', tier: 'mid' },
-  { name: 'deepseek-r1:8b', size: '4.9 GB', minRam: 16, gpu: null, desc: 'Reasoning-focused model. Shows its chain of thought.', tier: 'mid' },
-  { name: 'qwen2.5:14b',    size: '8.5 GB', minRam: 16, gpu: 'some', desc: 'Strong 14B model. Needs a GPU for usable speed.', tier: 'mid' },
-  { name: 'llama3.1:70b',   size: '40 GB',  minRam: 32, gpu: 'strong', desc: 'Meta\'s flagship. Near-frontier performance locally.', tier: 'high' },
-  { name: 'qwen2.5:32b',    size: '19 GB',  minRam: 32, gpu: 'some', desc: 'Excellent 32B model. Great for complex agent workflows.', tier: 'high' },
-  { name: 'mixtral:8x7b',   size: '26 GB',  minRam: 32, gpu: 'strong', desc: 'Mixture-of-experts. Fast inference, strong results.', tier: 'high' },
-  { name: 'deepseek-r1:32b',size: '19 GB',  minRam: 32, gpu: 'some', desc: 'Reasoning beast. Best for complex multi-step tasks.', tier: 'high' },
-];
-
-function recommendModels() {
-  const { ram, gpu } = state;
-  if (!ram) return MODELS; // show all if no RAM selected
-
-  return MODELS.filter(m => {
-    if (ram < m.minRam) return false;
-    if (m.gpu === 'strong' && (!gpu || gpu === 'none' || gpu === 'apple-silicon')) return false;
-    if (m.gpu === 'some' && (!gpu || gpu === 'none')) return false;
-    return true;
-  });
-}
-
-function getBestModel() {
-  const candidates = recommendModels();
-  if (candidates.length === 0) return MODELS[0];
-  // pick the largest compatible model
-  return candidates.reduce((a, b) => (parseFloat(b.size) > parseFloat(a.size) ? b : a));
-}
-
-// ── OS Detection ──
-function detectOS() {
-  const p = navigator.platform || '';
-  if (p.includes('Mac')) return 'macos';
-  if (p.includes('Win')) return 'windows';
-  return 'linux';
-}
-
-// ── Render ──
-function renderProgress() {
-  const bar = document.getElementById('progressBar');
-  let html = '';
-  const labels = ['Environment', 'Ollama', 'Model', 'Hermes', 'Messaging'];
-  for (let i = 0; i < state.totalSteps; i++) {
-    if (i > 0) {
-      const cls = i < state.currentStep ? 'progress-line done' : 'progress-line';
-      html += `<div class="${cls}"></div>`;
-    }
-    let cls = 'progress-step';
-    if (i + 1 < state.currentStep) cls += ' done';
-    else if (i + 1 === state.currentStep) cls += ' active';
-    html += `<div class="${cls}">${labels[i]}</div>`;
-  }
-  bar.innerHTML = html;
-}
-
-function renderStep1() {
-  const detected = detectOS();
-  const osNames = { macos: 'macOS', windows: 'Windows', linux: 'Linux' };
-  return `
-    <div class="card">
-      <h2><span class="num">1</span> Your Environment</h2>
-      <p class="subtitle">Tell us about your computer so we can give you the right commands.</p>
-
-      <h3 style="font-size:0.95rem;margin-bottom:0.7rem;color:var(--muted)">Operating System</h3>
-      <div class="os-grid">
-        ${['macos','windows','linux'].map(os => `
-          <div class="os-card ${state.os === os ? 'selected' : ''}${!state.os && os === detected ? ' selected' : ''}"
-               onclick="selectOS('${os}')">
-            <div class="icon">${{macos:'🍎',windows:'🪟',linux:'🐧'}[os]}</div>
-            <div class="name">${osNames[os]}</div>
-            <div class="arch">${{macos:'Apple Silicon / Intel',windows:'x64 / ARM64',linux:'x64 / ARM64'}[os]}</div>
-          </div>
-        `).join('')}
-      </div>
-
-      <div class="spec-row">
-        <div>
-          <label>RAM (Memory)</label>
-          <select id="ramSelect" onchange="selectRAM(this.value)">
-            <option value="">-- Select --</option>
-            <option value="8" ${state.ram===8?'selected':''}>8 GB</option>
-            <option value="16" ${state.ram===16?'selected':''}>16 GB</option>
-            <option value="24" ${state.ram===24?'selected':''}>24 GB</option>
-            <option value="32" ${state.ram===32?'selected':''}>32 GB</option>
-            <option value="48" ${state.ram===48?'selected':''}>48 GB</option>
-            <option value="64" ${state.ram===64?'selected':''}>64 GB+</option>
-          </select>
-        </div>
-        <div>
-          <label>Graphics Card / GPU</label>
-          <select id="gpuSelect" onchange="selectGPU(this.value)">
-            <option value="">-- Select --</option>
-            <option value="apple-silicon" ${state.gpu==='apple-silicon'?'selected':''}>Apple Silicon (M1/M2/M3/M4)</option>
-            <option value="nvidia-4gb" ${state.gpu==='nvidia-4gb'?'selected':''}>NVIDIA — 4-6 GB VRAM</option>
-            <option value="nvidia-8gb" ${state.gpu==='nvidia-8gb'?'selected':''}>NVIDIA — 8-12 GB VRAM</option>
-            <option value="nvidia-12gb+" ${state.gpu==='nvidia-12gb+'?'selected':''}>NVIDIA — 16 GB+ VRAM</option>
-            <option value="amd" ${state.gpu==='amd'?'selected':''}>AMD Radeon</option>
-            <option value="none" ${state.gpu==='none'?'selected':''}>No dedicated GPU (CPU only)</option>
-          </select>
-        </div>
-      </div>
-
-      ${state.os && state.ram ? `
-        <div class="spec-summary">
-          💡 <strong>Detected profile:</strong> ${osNames[state.os]} · ${state.ram} GB RAM${state.gpu ? ' · ' + document.getElementById('gpuSelect').selectedOptions[0].text : ''}
-          — ${state.ram >= 32 ? 'You can run large models comfortably.' : state.ram >= 16 ? 'Good for mid-size models.' : 'Stick with small/lightweight models.'}
-        </div>
-      ` : ''}
-
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="goToStep(2)" ${!state.os||!state.ram?'disabled style="opacity:0.5;cursor:not-allowed"':''}>
-          Next: Download Ollama →
-        </button>
-      </div>
-    </div>`;
-}
-
-function renderStep2() {
-  const os = state.os || detectOS();
-  const urls = {
-    macos:   'https://ollama.com/download/mac',
-    windows: 'https://ollama.com/download/windows',
-    linux:   'https://ollama.com/download/linux',
-  };
-  const linuxCmd = `curl -fsSL https://ollama.com/install.sh | sh`;
-  const osNames = { macos: 'macOS', windows: 'Windows', linux: 'Linux' };
-
-  return `
-    <div class="card">
-      <h2><span class="num">2</span> Install Ollama</h2>
-      <p class="subtitle">Ollama runs open-source LLMs locally. Download and install it for ${osNames[os]}.</p>
-
-      ${os === 'linux' ? `
-        <h3 style="font-size:0.95rem;margin-bottom:0.4rem;color:var(--muted)">Option 1 — One-liner (recommended)</h3>
-        <div class="code-block">
-          <span class="lang-tag">shell</span>
-          <button class="copy-btn" onclick="copyCode(this, '${linuxCmd.replace(/'/g,"\\'")}')">Copy</button>
-          <pre>${linuxCmd}</pre>
-        </div>
-
-        <h3 style="font-size:0.95rem;margin:1.2rem 0 0.4rem;color:var(--muted)">Option 2 — Manual download</h3>
-      ` : ''}
-
-      <a href="${urls[os]}" target="_blank" class="btn btn-secondary" style="text-decoration:none;">
-        ↓ Download Ollama for ${osNames[os]}
-      </a>
-      <span style="font-size:0.82rem;color:var(--muted);margin-left:0.5rem">${urls[os]}</span>
-
-      <div class="note">
-        <strong>💡 After installing:</strong> Ollama runs as a background service. On macOS/Windows it starts
-        automatically. On Linux, run <code style="background:var(--code-bg);padding:0.15rem 0.4rem;border-radius:4px">ollama serve</code> in a terminal.
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
-        <button class="btn btn-primary" onclick="goToStep(3)">Next: Choose a Model →</button>
-      </div>
-    </div>`;
-}
-
-function renderStep3() {
-  const recommended = recommendModels();
-  const best = getBestModel();
-  const cmd = (name) => `ollama pull ${name}`;
-
-  return `
-    <div class="card">
-      <h2><span class="num">3</span> Download an Open-Source Model</h2>
-      <p class="subtitle">Pick a model that fits your hardware. Click any card to copy the command, then paste it into your terminal.</p>
-
-      <div class="model-grid">
-        ${recommended.map(m => `
-          <div class="model-card ${m.name === best.name ? 'recommended' : ''}"
-               onclick="copyCode(this, '${cmd(m.name)}')" title="Click to copy: ${cmd(m.name)}">
-            <div class="m-name">${m.name}</div>
-            <div class="m-size">📦 ${m.size}</div>
-            <div class="m-desc">${m.desc}</div>
-            <div class="m-req">⚡ Needs ${m.minRam} GB RAM${m.gpu ? ' + GPU' : ''}</div>
-          </div>
-        `).join('')}
-      </div>
-
-      ${recommended.length === 0 ? `
-        <div class="warn">
-          <strong>⚠️ No models match your hardware.</strong> Try increasing RAM or adding a GPU.
-          Here are all available models for reference:
-        </div>
-        <div class="model-grid" style="margin-top:0.8rem">
-          ${MODELS.map(m => `
-            <div class="model-card" onclick="copyCode(this, '${cmd(m.name)}')">
-              <div class="m-name">${m.name}</div>
-              <div class="m-size">📦 ${m.size}</div>
-              <div class="m-desc">${m.desc}</div>
-            </div>
-          `).join('')}
-        </div>
-      ` : ''}
-
-      <div class="note">
-        <strong>🧠 Model recommendations:</strong> For Hermes (an AI agent that makes many tool calls),
-        we recommend at least 8B parameters. 3B models work but may struggle with complex tasks.
-        Qwen 2.5 and Llama 3.1 series have the best instruction-following for agent workflows.
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
-        <button class="btn btn-primary" onclick="goToStep(4)">Next: Install Hermes →</button>
-      </div>
-    </div>`;
-}
-
-function renderStep4() {
-  const os = state.os || detectOS();
-  const cmd = `curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash`;
-  const osNames = { macos: 'macOS', windows: 'Windows', linux: 'Linux' };
-
-  const winNote = os === 'windows' ? `
-    <div class="warn">
-      <strong>🪟 Windows users:</strong> Run this in <strong>PowerShell</strong> or <strong>Windows Terminal</strong>
-      (not Command Prompt). If you use WSL2, run the Linux command inside your WSL terminal instead.
+<section>
+  <h2>Why Run Your Agent Locally?</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="icon">🔒</div>
+      <h3>100% Private</h3>
+      <p>Your conversations, files, and data never leave your computer. No one sees your prompts or your code.</p>
     </div>
-  ` : '';
-
-  const postInstall = `
-    <h3 style="font-size:0.95rem;margin:1.2rem 0 0.5rem;color:var(--text)">After installation:</h3>
-
-    <div class="code-block">
-      <span class="lang-tag">shell</span>
-      <button class="copy-btn" onclick="copyCode(this, 'hermes setup')">Copy</button>
-      <pre>hermes setup</pre>
+    <div class="feature-card">
+      <div class="icon">💰</div>
+      <h3>Zero Token Costs</h3>
+      <p>No API billing. No per-message charges. Run your agent 24/7 without ever looking at a usage dashboard.</p>
     </div>
-
-    <p style="font-size:0.85rem;color:var(--muted);margin-top:0.5rem">
-      The setup wizard walks you through configuring your LLM provider.
-      Choose <strong>Ollama</strong> as your provider and point it to
-      <code style="background:var(--code-bg);padding:0.1rem 0.35rem;border-radius:3px">http://localhost:11434</code>.
-    </p>
-
-    <div class="note">
-      <strong>🔑 No API key needed!</strong> Since Ollama runs locally, you don't need to sign up
-      for any cloud service or API key. Everything stays on your machine.
+    <div class="feature-card">
+      <div class="icon">⚡</div>
+      <h3>Always Available</h3>
+      <p>No rate limits. No downtime. No "service unavailable." Your agent works even when your internet doesn't.</p>
     </div>
+  </div>
+</section>
 
-    <h3 style="font-size:0.95rem;margin:1.2rem 0 0.5rem;color:var(--text)">Verify it works:</h3>
-    <div class="code-block">
-      <span class="lang-tag">shell</span>
-      <button class="copy-btn" onclick="copyCode(this, 'hermes chat -q \"Hello, what model are you running?\"')">Copy</button>
-      <pre>hermes chat -q "Hello, what model are you running?"</pre>
+<section>
+  <h2>What You'll Build</h2>
+  <div class="steps-preview">
+    <div class="step-row">
+      <div class="step-num">1</div>
+      <div>
+        <h4>Pick your setup</h4>
+        <p>Tell us your OS and hardware — we'll recommend the right model for your machine.</p>
+      </div>
     </div>
-  `;
-
-  return `
-    <div class="card">
-      <h2><span class="num">4</span> Install Hermes Agent</h2>
-      <p class="subtitle">One command to install Hermes on ${osNames[os]}. Paste this into your terminal.</p>
-
-      <div class="code-block">
-        <span class="lang-tag">${os === 'windows' ? 'powershell' : 'shell'}</span>
-        <button class="copy-btn" onclick="copyCode(this, '${cmd.replace(/'/g,"\\'")}')">Copy</button>
-        <pre>${cmd}</pre>
+    <div class="step-row">
+      <div class="step-num">2</div>
+      <div>
+        <h4>Install Ollama</h4>
+        <p>One download. Ollama runs open-source LLMs locally — free, fast, and private.</p>
       </div>
-
-      ${winNote}
-      ${postInstall}
-
-      <div class="btn-row">
-        <button class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
-        <button class="btn btn-primary" onclick="goToStep(5)">Next: Set Up Messaging →</button>
+    </div>
+    <div class="step-row">
+      <div class="step-num">3</div>
+      <div>
+        <h4>Download a model</h4>
+        <p>Choose from 14+ models based on your hardware. One command to pull. Ready in minutes.</p>
       </div>
-    </div>`;
-}
-
-function renderStep5() {
-  return `
-    <div class="card">
-      <h2><span class="num">5</span> Connect Messaging Apps</h2>
-      <p class="subtitle">Let Hermes talk to you on Telegram and WeChat — or any of 15+ platforms.</p>
-
-      <!-- Platform Tabs -->
-      <div class="tabs">
-        <button class="tab active" onclick="switchTab('telegram')">📱 Telegram</button>
-        <button class="tab" onclick="switchTab('wechat')">💬 WeChat</button>
+    </div>
+    <div class="step-row">
+      <div class="step-num">4</div>
+      <div>
+        <h4>Install Hermes</h4>
+        <p>A single curl command. Then <code>hermes setup</code> — point it at Ollama and you're done.</p>
       </div>
-
-      <!-- Telegram -->
-      <div class="tab-content active" id="tab-telegram">
-        <h3 style="font-size:1rem;margin-bottom:0.5rem">Step-by-step for Telegram</h3>
-
-        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem">
-          <strong>1.</strong> Create a bot with <strong>@BotFather</strong> on Telegram:
-        </p>
-        <ol style="font-size:0.85rem;color:var(--text);margin:0 0 0.8rem 1.2rem">
-          <li>Open Telegram, search for <strong>@BotFather</strong></li>
-          <li>Send <code style="background:var(--code-bg);padding:0.1rem 0.35rem;border-radius:3px">/newbot</code></li>
-          <li>Pick a name and username for your bot</li>
-          <li>Copy the <strong>API token</strong> BotFather gives you</li>
-        </ol>
-
-        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem">
-          <strong>2.</strong> Add the token to Hermes:
-        </p>
-        <div class="code-block">
-          <span class="lang-tag">shell</span>
-          <button class="copy-btn" onclick="copyCode(this, 'hermes gateway setup')">Copy</button>
-          <pre>hermes gateway setup</pre>
-        </div>
-        <p style="font-size:0.82rem;color:var(--muted);margin-top:0.3rem">
-          Choose <strong>Telegram</strong> from the platform list and paste your bot token.
-        </p>
-
-        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem">
-          <strong>3.</strong> Start the gateway:
-        </p>
-        <div class="code-block">
-          <span class="lang-tag">shell</span>
-          <button class="copy-btn" onclick="copyCode(this, 'hermes gateway run')">Copy</button>
-          <pre>hermes gateway run</pre>
-        </div>
-
-        <p style="font-size:0.82rem;color:var(--muted);margin-top:0.3rem">
-          Or install as a background service so it survives reboots:
-        </p>
-        <div class="code-block">
-          <span class="lang-tag">shell</span>
-          <button class="copy-btn" onclick="copyCode(this, 'hermes gateway install')">Copy</button>
-          <pre>hermes gateway install</pre>
-        </div>
-
-        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem">
-          <strong>4.</strong> Open your bot on Telegram and send a message — Hermes will reply!
-        </p>
+    </div>
+    <div class="step-row">
+      <div class="step-num">5</div>
+      <div>
+        <h4>Connect your messaging apps</h4>
+        <p>Talk to Hermes from Telegram or WeChat. It's your agent, anywhere you are.</p>
       </div>
+    </div>
+  </div>
 
-      <!-- WeChat -->
-      <div class="tab-content" id="tab-wechat">
-        <h3 style="font-size:1rem;margin-bottom:0.5rem">Step-by-step for WeChat</h3>
+  <div class="quote-box">
+    <p>"I thought AI agents needed expensive cloud subscriptions. Turned out my laptop was all I needed."</p>
+    <div class="attr">— You, after following this guide</div>
+  </div>
+</section>
 
-        <div class="warn">
-          <strong>⚠️ Important:</strong> WeChat integration requires the <strong>Weixin (WeChat) Official Account</strong>
-          plugin. This is more involved than Telegram because WeChat doesn't have a simple bot API.
-          You'll need a registered WeChat Official Account (公众号).
-        </div>
+<section>
+  <h2>Who Is This For?</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="icon">🧑‍💻</div>
+      <h3>Developers</h3>
+      <p>An AI pair programmer that reads your entire codebase, runs tests, opens PRs — no API limits.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📊</div>
+      <h3>Analysts & Researchers</h3>
+      <p>Process documents, summarize papers, analyze data — privately, with no data leaving your machine.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🏠</div>
+      <h3>Curious Learners</h3>
+      <p>Never used a terminal before? Our step-by-step guide and command reference will get you comfortable fast.</p>
+    </div>
+  </div>
+</section>
 
-        <p style="font-size:0.85rem;color:var(--text);margin:1rem 0 0.5rem">
-          <strong>1.</strong> Set up a WeChat Official Account:
-        </p>
-        <ol style="font-size:0.85rem;color:var(--text);margin:0 0 0.8rem 1.2rem">
-          <li>Go to <a href="https://mp.weixin.qq.com" target="_blank" style="color:var(--accent)">mp.weixin.qq.com</a> and register</li>
-          <li>In Settings → Developer Center, enable server configuration</li>
-          <li>Set the server URL to your Hermes gateway's public endpoint</li>
-          <li>Copy your <strong>App ID</strong>, <strong>App Secret</strong>, and <strong>Token</strong></li>
-        </ol>
-
-        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem">
-          <strong>2.</strong> Configure Hermes for WeChat:
-        </p>
-        <div class="code-block">
-          <span class="lang-tag">shell</span>
-          <button class="copy-btn" onclick="copyCode(this, 'hermes gateway setup')">Copy</button>
-          <pre>hermes gateway setup</pre>
-        </div>
-        <p style="font-size:0.82rem;color:var(--muted);margin-top:0.3rem">
-          Choose <strong>Weixin</strong> and enter your App ID, App Secret, and Token.
-        </p>
-
-        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem">
-          <strong>3.</strong> Expose your gateway (WeChat needs a public URL):
-        </p>
-        <div class="code-block">
-          <span class="lang-tag">shell</span>
-          <button class="copy-btn" onclick="copyCode(this, 'hermes gateway run')">Copy</button>
-          <pre>hermes gateway run   # starts on port 8080 by default</pre>
-        </div>
-        <p style="font-size:0.82rem;color:var(--muted);margin-top:0.3rem">
-          For testing, use <a href="https://ngrok.com" target="_blank" style="color:var(--accent)">ngrok</a> to get a temporary public URL:
-        </p>
-        <div class="code-block">
-          <span class="lang-tag">shell</span>
-          <button class="copy-btn" onclick="copyCode(this, 'ngrok http 8080')">Copy</button>
-          <pre>ngrok http 8080</pre>
-        </div>
-      </div>
-
-      <!-- Multi-platform note -->
-      <div class="success-box" style="margin-top:1.2rem">
-        <strong>✅ Hermes supports 15+ messaging platforms!</strong> Including Discord, Slack, WhatsApp,
-        Signal, Matrix, Email, SMS, and more. Run <code style="background:var(--code-bg);padding:0.1rem 0.35rem;border-radius:3px">hermes gateway setup</code>
-        to see all options. Full docs: <a href="https://hermes-agent.nousresearch.com/docs/user-guide/messaging/" target="_blank" style="color:var(--accent)">hermes-agent.nousresearch.com/docs</a>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-secondary" onclick="goToStep(4)">← Back</button>
-        <button class="btn btn-secondary" onclick="resetAll()">🔄 Start Over</button>
-      </div>
-    </div>`;
-}
-
-// ── Navigation ──
-function goToStep(n) {
-  state.currentStep = n;
-  renderAll();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function renderAll() {
-  renderProgress();
-  document.getElementById('main').innerHTML = [
-    renderStep1, renderStep2, renderStep3, renderStep4, renderStep5
-  ][state.currentStep - 1]();
-  // re-bind tab handlers
-  document.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => switchTab(t.textContent.includes('Telegram') ? 'telegram' : 'wechat'));
-  });
-}
-
-function resetAll() {
-  state.currentStep = 1;
-  state.os = null;
-  state.ram = null;
-  state.gpu = null;
-  renderAll();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// ── Handlers ──
-function selectOS(os) {
-  state.os = os;
-  // If Mac + no GPU selected, auto-set Apple Silicon
-  if (os === 'macos' && !state.gpu) {
-    state.gpu = 'apple-silicon';
-  }
-  renderAll();
-}
-
-function selectRAM(val) {
-  state.ram = val ? parseInt(val) : null;
-  renderAll();
-}
-
-function selectGPU(val) {
-  state.gpu = val || null;
-  renderAll();
-}
-
-function switchTab(platform) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.querySelector(`.tab:nth-child(${platform === 'telegram' ? '1' : '2'})`).classList.add('active');
-  document.getElementById(`tab-${platform}`).classList.add('active');
-}
-
-function copyCode(btn, text) {
-  navigator.clipboard.writeText(text).then(() => {
-    btn.textContent = 'Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
-  }).catch(() => {
-    // Fallback for older browsers
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    btn.textContent = 'Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
-  });
-}
-
-// ── Init ──
-if (!state.os) state.os = detectOS();
-if (state.os === 'macos') state.gpu = 'apple-silicon';
-renderAll();
-</script>
+<footer>
+  Built with ❤️ to help people own their AI · 
+  <a href="https://github.com/NousResearch/hermes-agent" target="_blank">Hermes Agent</a> · 
+  <a href="https://ollama.com" target="_blank">Ollama</a>
+</footer>
 
 </body>
 </html>
