@@ -836,13 +836,9 @@ renderAll();
 
 function goToLang(lang) {
   localStorage.setItem('hermes_lang', lang);
-  // Reload current page if it supports i18n, otherwise just save
-  if (typeof setLanguage === 'function') {
-    setLanguage(lang);
-  } else {
-    // Save preference and redirect to home which has full i18n
-    window.location.href = 'index.html';
-  }
+  // Apply immediately if page supports i18n
+  if (typeof setLanguage === 'function') setLanguage(lang);
+  if (typeof setUILanguage === 'function') setUILanguage(lang);
 }
 </script>
 

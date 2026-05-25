@@ -499,11 +499,8 @@ function switchOS(os) {
 
 function goToLang(lang) {
   localStorage.setItem('hermes_lang', lang);
-  if (typeof setLanguage === 'function') {
-    setLanguage(lang);
-  } else {
-    window.location.href = 'index.html';
-  }
+  if (typeof setLanguage === 'function') setLanguage(lang);
+  if (typeof setUILanguage === 'function') setUILanguage(lang);
 }
 </script>
 
