@@ -284,6 +284,11 @@ const state = {
   selectedModel: null,  // currently selected model name
 };
 
+// ── i18n Translations ──
+const TL = {en:{progress:['Environment','Ollama','Model','Hermes','Cloud API','Messaging'],step1Title:'Your Environment',step1Sub:"Tell us about your computer so we can give you the right commands.",step1Next:'Next: Download Ollama →',step2Title:'Install Ollama',step2Sub:'Ollama runs open-source LLMs locally.',step2After:'After installing',step2AfterDesc:'Ollama runs as a background service. On macOS/Windows it starts automatically. On Linux, run <code>ollama serve</code>.',step2Next:'Next: Choose a Model →',step3Title:'Download an Open-Source Model',step3Sub:'Based on your hardware, here are your best options.',step3Top:'Top Picks',step3Other:'Other Compatible Models',step3OtherHint:'Click a row to select it:',step3Install:'How to Install',step3Next:'Next: Install Hermes →',step4Title:'Install Hermes Agent',step4Sub:'One command to install Hermes on',step4After:'After installation',step4Verify:'Verify',step4Note:'No API key needed! Ollama runs locally.',step4Next:'Next: Add Cloud Models (Optional) →',step5Title:'Bonus: Add Cloud Model APIs',step5Sub:'Local models are great, but cloud models give you more power.',step5Skip:"Skip, I'll use local only →",step5Next:'Next: Set Up Messaging →',step6Title:'Connect Messaging Apps',step6Sub:'Let Hermes talk to you on Telegram and WeChat.',back:'← Back',reset:'🔄 Start Over',select:'Select',selected:'✓ Selected',best:'★ Best',noModels:'No models match your hardware.',paste:'Paste this into your',download:'The model will download',verifyNote:'After downloading, test with',noApi:'🔑 No API key needed!'},zh:{progress:['环境','Ollama','模型','Hermes','云端API','消息'],step1Title:'你的环境',step1Sub:'告诉我们你的电脑信息，以便提供正确的命令。',step1Next:'下一步：下载 Ollama →',step2Title:'安装 Ollama',step2Sub:'Ollama 在本地运行开源大模型。',step2After:'安装后',step2AfterDesc:'Ollama 作为后台服务运行。macOS/Windows 自动启动。Linux 运行 <code>ollama serve</code>。',step2Next:'下一步：选择模型 →',step3Title:'下载开源模型',step3Sub:'根据你的硬件配置，以下是推荐选项。',step3Top:'推荐对比',step3Other:'其他兼容模型',step3OtherHint:'点击任意行选择：',step3Install:'安装方法',step3Next:'下一步：安装 Hermes →',step4Title:'安装 Hermes Agent',step4Sub:'一条命令安装 Hermes —',step4After:'安装后',step4Verify:'验证',step4Note:'无需 API Key！Ollama 本地运行。',step4Next:'下一步：添加云端模型 →',step5Title:'Bonus: 添加云端模型 API',step5Sub:'本地模型很好，但云端模型提供更强能力。',step5Skip:'跳过，只用本地 →',step5Next:'下一步：设置消息平台 →',step6Title:'连接消息应用',step6Sub:'让 Hermes 通过 Telegram 或微信与你对话。',back:'← 返回',reset:'🔄 重新开始',select:'选择',selected:'✓ 已选',best:'★ 最佳',noModels:'没有匹配硬件的模型',paste:'粘贴到你的',download:'模型将下载',verifyNote:'下载后测试：',noApi:'🔑 无需 API Key！'},ko:{progress:['환경','Ollama','모델','Hermes','클라우드API','메시징'],step1Title:'사용 환경',step1Sub:'컴퓨터 정보를 알려주시면 맞춤 명령어를 제공합니다.',step1Next:'다음: Ollama 다운로드 →',step2Title:'Ollama 설치',step2Sub:'Ollama는 오픈소스 LLM을 로컬에서 실행합니다.',step2After:'설치 후',step2AfterDesc:'Ollama는 백그라운드 서비스로 실행됩니다. macOS/Windows는 자동 시작. Linux는 <code>ollama serve</code> 실행.',step2Next:'다음: 모델 선택 →',step3Title:'오픈소스 모델 다운로드',step3Sub:'하드웨어에 맞는 최적의 옵션입니다.',step3Top:'추천 비교',step3Other:'기타 호환 모델',step3OtherHint:'행을 클릭하여 선택:',step3Install:'설치 방법',step3Next:'다음: Hermes 설치 →',step4Title:'Hermes Agent 설치',step4Sub:'한 줄로 Hermes 설치 —',step4After:'설치 후',step4Verify:'확인',step4Note:'API 키 불필요! Ollama 로컬 실행.',step4Next:'다음: 클라우드 모델 추가 →',step5Title:'Bonus: 클라우드 모델 API 추가',step5Sub:'로컬 모델도 좋지만 클라우드가 더 강력합니다.',step5Skip:'건너뛰기 (로컬만) →',step5Next:'다음: 메시징 설정 →',step6Title:'메시징 앱 연결',step6Sub:'Telegram이나 WeChat으로 Hermes와 대화.',back:'← 뒤로',reset:'🔄 처음부터',select:'선택',selected:'✓ 선택됨',best:'★ 최고',noModels:'하드웨어에 맞는 모델 없음',paste:'다음에 붙여넣기',download:'모델 다운로드',verifyNote:'다운로드 후 테스트:',noApi:'🔑 API 키 불필요!'},es:{progress:['Entorno','Ollama','Modelo','Hermes','API Nube','Mensajería'],step1Title:'Tu Entorno',step1Sub:'Cuéntanos sobre tu equipo para los comandos correctos.',step1Next:'Siguiente: Descargar Ollama →',step2Title:'Instalar Ollama',step2Sub:'Ollama ejecuta LLMs de código abierto localmente.',step2After:'Después de instalar',step2AfterDesc:'Ollama se ejecuta como servicio. macOS/Windows inicia automático. Linux: <code>ollama serve</code>.',step2Next:'Siguiente: Elegir Modelo →',step3Title:'Descargar un Modelo',step3Sub:'Según tu hardware, las mejores opciones.',step3Top:'Recomendaciones',step3Other:'Otros Modelos',step3OtherHint:'Clic en fila para seleccionar:',step3Install:'Cómo Instalar',step3Next:'Siguiente: Instalar Hermes →',step4Title:'Instalar Hermes Agent',step4Sub:'Un comando para instalar Hermes en',step4After:'Después de instalar',step4Verify:'Verificar',step4Note:'¡Sin API key! Ollama local.',step4Next:'Siguiente: Modelos Cloud →',step5Title:'Bonus: APIs Cloud',step5Sub:'Modelos locales bien, cloud más potencia.',step5Skip:'Saltar (solo local) →',step5Next:'Siguiente: Mensajería →',step6Title:'Conectar Mensajería',step6Sub:'Habla con Hermes desde Telegram o WeChat.',back:'← Volver',reset:'🔄 Reiniciar',select:'Seleccionar',selected:'✓ Selec.',best:'★ Mejor',noModels:'Sin modelos compatibles',paste:'Pega en tu',download:'El modelo descargará',verifyNote:'Después de descargar:',noApi:'🔑 ¡Sin API key!'}};
+function t(key){var lang=localStorage.getItem('hermes_lang')||'en';return (TL[lang]&&TL[lang][key])||TL.en[key]||key;}
+function applyPageLanguage(lang){localStorage.setItem('hermes_lang',lang);var sel=document.querySelector('.lang-select');if(sel)sel.value=lang;renderAll();}
+
 const MODELS = [
   { name: 'llama3.2:3b',    size: '2.0 GB', minRam: 8,  gpu: null, desc: 'Fast, lightweight. Great for basic tasks and low-resource machines.', tier: 'entry' },
   { name: 'gemma2:2b',      size: '1.6 GB', minRam: 8,  gpu: null, desc: "Google's tiny powerhouse. Smallest viable option.", tier: 'entry' },
@@ -328,7 +333,8 @@ function detectOS() {
 function renderProgress() {
   const bar = document.getElementById('progressBar');
   let html = '';
-  const labels = ['Environment', 'Ollama', 'Model', 'Hermes', 'Messaging', 'Cloud API'];
+  const labels = t('progress');
+  if (!Array.isArray(labels)) return;
   for (let i = 0; i < state.totalSteps; i++) {
     if (i > 0) {
       const cls = i < state.currentStep ? 'progress-line done' : 'progress-line';
@@ -835,10 +841,7 @@ if (state.os === 'macos') state.gpu = 'apple-silicon';
 renderAll();
 
 function goToLang(lang) {
-  localStorage.setItem('hermes_lang', lang);
-  // Apply immediately if page supports i18n
-  if (typeof setLanguage === 'function') setLanguage(lang);
-  if (typeof setUILanguage === 'function') setUILanguage(lang);
+  applyPageLanguage(lang);
 }
 </script>
 
