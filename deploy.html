@@ -581,9 +581,9 @@ function renderStep4() {
         <code style="background:var(--code-bg);padding:0.1rem 0.35rem;border-radius:3px">http://localhost:11434</code>.
       </p>
 
-      <div class="note"><strong>🔑 No API key needed!</strong> Ollama runs locally — everything stays on your machine.</div>
-
-      <h3 style="font-size:0.95rem;margin:1.2rem 0 0.5rem;color:var(--text)">Verify:</h3>
+      <h3 style="font-size:0.95rem;margin:1.2rem 0 0.5rem;color:var(--text)">${t('step4After')}:</h3>
+      <div class="note">${t('noApi')}</div>
+      <h3 style="font-size:0.95rem;margin:1.2rem 0 0.5rem;color:var(--text)">${t('step4Verify')}:</h3>
       <div class="code-block">
         <span class="lang-tag">shell</span>
         <button class="copy-btn" onclick="copyCode(this, 'hermes chat -q \"Hello, what model are you running?\"')">Copy</button>
@@ -592,7 +592,7 @@ function renderStep4() {
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
-        <button class="btn btn-primary" onclick="goToStep(5)">Next: Add Cloud Models (Optional) →</button>
+        <button class="btn btn-primary" onclick="goToStep(5)">${t('step4Next')}</button>
       </div>
     </div>`;
 }
@@ -600,8 +600,8 @@ function renderStep4() {
 function renderStep5() {
   return `
     <div class="card">
-      <h2><span class="num">5</span> Bonus: Add Cloud Model APIs</h2>
-      <p class="subtitle">Local models are great, but cloud models give you more power when you need it. These are affordable and powerful options.</p>
+      <h2><span class="num">5</span> ${t('step5Title')}</h2>
+      <p class="subtitle">${t('step5Sub')}</p>
 
       <div class="tabs">
         <button class="tab active" onclick="switchTab('deepseek')">🇨🇳 DeepSeek</button>
@@ -685,8 +685,8 @@ function renderStep5() {
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goToStep(4)">← Back</button>
-        <button class="btn btn-secondary" onclick="goToStep(6)">Skip (I'll use local only) →</button>
-        <button class="btn btn-primary" onclick="goToStep(6)">Next: Set Up Messaging →</button>
+        <button class="btn btn-secondary" onclick="goToStep(6)">${t('step5Skip')}</button>
+        <button class="btn btn-primary" onclick="goToStep(6)">${t('step5Next')}</button>
       </div>
     </div>`;
 }
@@ -694,8 +694,8 @@ function renderStep5() {
 function renderStep6() {
   return `
     <div class="card">
-      <h2><span class="num">6</span> Connect Messaging Apps</h2>
-      <p class="subtitle">Let Hermes talk to you on Telegram and WeChat — or any of 15+ platforms.</p>
+      <h2><span class="num">6</span> ${t('step6Title')}</h2>
+      <p class="subtitle">${t('step6Sub')} — or any of 15+ platforms.</p>
 
       <div class="tabs">
         <button class="tab active" onclick="switchTab('telegram')">📱 Telegram</button>
@@ -766,7 +766,7 @@ function renderStep6() {
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goToStep(5)">← Back</button>
-        <button class="btn btn-secondary" onclick="resetAll()">🔄 Start Over</button>
+        <button class="btn btn-secondary" onclick="resetAll()">${t('reset')}</button>
       </div>
     </div>`;
 }

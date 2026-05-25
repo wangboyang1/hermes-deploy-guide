@@ -223,11 +223,11 @@
 
   <!-- ── Sidebar ── -->
   <div class="sidebar">
-    <h3>📚 Training Modules</h3>
+    <h3 id="sidebarTitle">📚 Training Modules</h3>
     <div id="topicList"></div>
     <div class="progress-bar-wrap">
       <div style="display:flex;justify-content:space-between">
-        <span>Overall Progress</span>
+        <span id="progressLabel">Overall Progress</span>
         <span id="progressText">0 / 28</span>
       </div>
       <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar" style="width:0%"></div></div>
@@ -511,6 +511,23 @@ const CURRICULUM = [
 ];
 
 // ── State ──
+const TLT = {
+  en:{hint:'💡 Hint',prev:'← Previous',next:'Next →',resetAll:'🔄 Reset All',done:'done',
+    stepOf:'Step {n} of {t}',progress:'Overall Progress',trainingModules:'📚 Training Modules',
+    pageTitle:'Hermes Training Simulator — Learn by Doing'},
+  zh:{hint:'💡 提示',prev:'← 上一步',next:'下一步 →',resetAll:'🔄 全部重置',done:'完成',
+    stepOf:'第 {n} 步 / 共 {t} 步',progress:'总体进度',trainingModules:'📚 训练模块',
+    pageTitle:'Hermes 训练模拟器 — 边做边学'},
+  ko:{hint:'💡 힌트',prev:'← 이전',next:'다음 →',resetAll:'🔄 모두 초기화',done:'완료',
+    stepOf:'{n} / {t} 단계',progress:'전체 진행률',trainingModules:'📚 훈련 모듈',
+    pageTitle:'Hermes 훈련 시뮬레이터 — 실습하며 배우기'},
+  es:{hint:'💡 Pista',prev:'← Anterior',next:'Siguiente →',resetAll:'🔄 Reiniciar',done:'hecho',
+    stepOf:'Paso {n} de {t}',progress:'Progreso General',trainingModules:'📚 Módulos',
+    pageTitle:'Simulador de Hermes — Aprende Haciendo'},
+};
+function tt(key){var lang=localStorage.getItem('hermes_lang')||'en';return (TLT[lang]&&TLT[lang][key])||TLT.en[key]||key;}
+function applyPageLanguage(lang){localStorage.setItem('hermes_lang',lang);var sel=document.querySelector('.lang-select');if(sel)sel.value=lang;renderAll();document.title=tt('pageTitle');}
+
 let currentTopic = 0;
 let currentStep = 0;
 let completed = {};     // { 'topicId-stepIdx': true }
@@ -547,6 +564,8 @@ function renderSidebar() {
 
   document.getElementById('progressText').textContent = `${doneSteps} / ${totalSteps}`;
   document.getElementById('progressBar').style.width = totalSteps > 0 ? `${(doneSteps/totalSteps)*100}%` : '0%';
+  document.getElementById('sidebarTitle').textContent = tt('trainingModules');
+  document.getElementById('progressLabel').textContent = tt('progress');
 
   list.innerHTML = CURRICULUM.map((t, ti) => {
     const topicDone = t.steps.every((_, si) => completed[`${ti}-${si}`]);
@@ -556,7 +575,7 @@ function renderSidebar() {
            onclick="selectTopic(${ti})">
         <span class="check"></span>
         <span class="label">${t.icon} ${t.title}</span>
-        ${topicDone ? '<span class="badge">done</span>' : ''}
+        ${topicDone ? '<span class="badge">'+tt('done')+'</span>' : ''}
       </div>
     `;
   }).join('');
@@ -568,13 +587,13 @@ function renderTask() {
 
   document.getElementById('topicTitle').innerHTML = `${topic.icon} ${topic.title}`;
   document.getElementById('stepIndicator').textContent =
-    `Step ${currentStep + 1} of ${topic.steps.length}`;
+    tt('stepOf').replace('{n}', currentStep+1).replace('{t}', topic.steps.length);
   document.getElementById('instruction').innerHTML = step.instruction;
 
   const hintBox = document.getElementById('hintBox');
   hintBox.classList.toggle('visible', !!hintRevealed[`${currentTopic}-${currentStep}`]);
   hintBox.innerHTML = hintRevealed[`${currentTopic}-${currentStep}`]
-    ? `💡 <strong>Hint:</strong> ${step.hint}` : '';
+    ? `${tt('hint')}: ${step.hint}` : '';
 
   document.getElementById('btnNext').style.display =
     completed[`${currentTopic}-${currentStep}`] ? 'inline-block' : 'none';
