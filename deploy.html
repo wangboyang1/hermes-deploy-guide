@@ -142,6 +142,37 @@
   .copy-btn:hover { color: var(--text); border-color: var(--muted); }
   .copy-btn.copied { color: var(--green); border-color: var(--green); }
 
+  /* ── Comparison Table ── */
+  .compare-table {
+    width: 100%; border-collapse: collapse; font-size: 0.82rem;
+  }
+  .compare-table th {
+    text-align: left; padding: 0.5rem 0.6rem; font-size: 0.72rem;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--border); background: var(--bg);
+  }
+  .compare-table td {
+    padding: 0.55rem 0.6rem; border-bottom: 1px solid rgba(48,54,61,0.3);
+    vertical-align: middle;
+  }
+  .compare-table tr.best-row td { background: rgba(63,185,80,0.04); }
+  .best-tag {
+    font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 8px;
+    background: rgba(63,185,80,0.15); color: var(--green); font-weight: 600;
+  }
+  .other-table {
+    width: 100%; border-collapse: collapse; font-size: 0.82rem;
+  }
+  .other-table th {
+    text-align: left; padding: 0.4rem 0.6rem; font-size: 0.72rem;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+  }
+  .other-table td {
+    padding: 0.45rem 0.6rem; border-bottom: 1px solid rgba(48,54,61,0.2);
+  }
+  .clickable-row { cursor: pointer; transition: background 0.1s; }
+  .clickable-row:hover { background: rgba(88,166,255,0.04); }
+
   .model-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
   .model-card {
     background: var(--bg); border: 1px solid var(--border);
@@ -215,7 +246,14 @@
   <a href="deploy.html" class="nav-link active">Deploy</a>
   <a href="commands.html" class="nav-link">Commands</a>
   <a href="train.html" class="nav-link">Train</a>
+  <a href="search.html" class="nav-link">Search</a>
   <a href="community.html" class="nav-link">Community</a>
+  <select class="lang-select" onchange="goToLang(this.value)" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:0.3rem 0.5rem;font-size:0.8rem;font-family:inherit;cursor:pointer;margin-left:0.5rem">
+    <option value="en">🇺🇸 EN</option>
+    <option value="zh">🇨🇳 中文</option>
+    <option value="ko">🇰🇷 한국어</option>
+    <option value="es">🇪🇸 ES</option>
+  </select>
 </nav>
 
 <header>
@@ -401,32 +439,93 @@ function renderStep2() {
 function renderStep3() {
   const recommended = recommendModels();
   const best = getBestModel();
+  const top3 = recommended.slice(0, 3);
+  const others = recommended.slice(3);
+  const os = state.os || detectOS();
   const cmd = (name) => `ollama pull ${name}`;
+
+  // Detect OS for specific instructions
+  const isWindows = os === 'windows';
+  const shellType = isWindows ? 'PowerShell' : 'Terminal';
+  const shellNote = isWindows
+    ? 'Open <strong>PowerShell</strong> or <strong>Windows Terminal</strong> (not Command Prompt).'
+    : 'Open <strong>Terminal</strong> (macOS: Cmd+Space → Terminal; Linux: Ctrl+Alt+T).';
 
   return `
     <div class="card">
       <h2><span class="num">3</span> Download an Open-Source Model</h2>
-      <p class="subtitle">Pick a model that fits your hardware. Click any card to copy the command.</p>
+      <p class="subtitle">Based on your hardware (${state.ram}GB RAM${state.gpu && state.gpu !== 'none' ? ', with GPU' : ''}), here are your best options.</p>
 
-      <div class="model-grid">
-        ${recommended.map(m => `
-          <div class="model-card ${m.name === best.name ? 'recommended' : ''}"
-               onclick="copyCode(this, '${cmd(m.name)}')" title="Click to copy: ${cmd(m.name)}">
-            <div class="m-name">${m.name}</div>
-            <div class="m-size">📦 ${m.size}</div>
-            <div class="m-desc">${m.desc}</div>
-            <div class="m-req">⚡ Needs ${m.minRam} GB RAM${m.gpu ? ' + GPU' : ''}</div>
-          </div>
-        `).join('')}
+      ${top3.length > 0 ? `
+      <!-- ── Top 3 Comparison ── -->
+      <h3 style="font-size:1rem;color:#fff;margin:1rem 0 0.6rem">🏆 Top Picks — Comparison</h3>
+      <div style="overflow-x:auto;margin-bottom:1rem">
+        <table class="compare-table">
+          <tr>
+            <th>Model</th>
+            <th>Size</th>
+            <th>RAM</th>
+            <th>GPU</th>
+            <th>Speed</th>
+            <th>Best For</th>
+            <th></th>
+          </tr>
+          ${top3.map((m, i) => `
+            <tr class="${m.name === best.name ? 'best-row' : ''}">
+              <td><strong>${m.name}</strong>${m.name === best.name ? ' <span class="best-tag">★ Best</span>' : ''}</td>
+              <td>${m.size}</td>
+              <td>${m.minRam} GB</td>
+              <td>${m.gpu ? 'Yes' : 'CPU OK'}</td>
+              <td>${m.tier === 'entry' ? '⚡ Fast' : m.tier === 'mid' ? '⚡⚡ Good' : '⚡⚡⚡ Heavy'}</td>
+              <td>${m.desc.slice(0, 50)}...</td>
+              <td><button class="btn btn-primary" style="padding:0.3rem 0.7rem;font-size:0.78rem"
+                onclick="copyCode(this,'${cmd(m.name)}')">📋 Copy</button></td>
+            </tr>
+          `).join('')}
+        </table>
       </div>
+      ` : ''}
+
+      <!-- ── Install Instruction ── -->
+      <h3 style="font-size:1rem;color:#fff;margin:1rem 0 0.4rem">📥 How to Install</h3>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem">
+        ${shellNote} Make sure Ollama is running first (check your system tray or run <code style="background:var(--code-bg);padding:0.1rem 0.35rem;border-radius:3px">ollama serve</code>).
+      </p>
+
+      ${best ? `
+      <div class="code-block">
+        <span class="lang-tag">${isWindows ? 'powershell' : 'shell'}</span>
+        <button class="copy-btn" onclick="copyCode(this, '${cmd(best.name).replace(/'/g,"\\'")}')">Copy</button>
+        <pre id="installCmd">${cmd(best.name)}</pre>
+      </div>
+      <p style="font-size:0.8rem;color:var(--muted);margin-top:0.3rem">
+        Paste this into your ${shellType}. The model will download (${best.size}) — takes 2-10 minutes depending on your internet.
+      </p>
+      ` : ''}
+
+      <!-- ── Other Options ── -->
+      ${others.length > 0 ? `
+      <h3 style="font-size:1rem;color:#fff;margin:1.5rem 0 0.6rem">📋 Other Compatible Models</h3>
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.5rem">Click any row to copy its install command:</p>
+      <table class="other-table">
+        <tr><th>Model</th><th>Size</th><th>Description</th></tr>
+        ${others.map(m => `
+          <tr onclick="copyCode(this,'${cmd(m.name)}')" class="clickable-row" title="Click to copy: ${cmd(m.name)}">
+            <td><code style="color:var(--green)">${m.name}</code></td>
+            <td>${m.size}</td>
+            <td>${m.desc}</td>
+          </tr>
+        `).join('')}
+      </table>
+      ` : ''}
 
       ${recommended.length === 0 ? `
         <div class="warn"><strong>⚠️ No models match your hardware.</strong> Try increasing RAM or adding a GPU.</div>
       ` : ''}
 
       <div class="note">
-        <strong>🧠 Recommendation:</strong> For Hermes (an AI agent that makes many tool calls),
-        we recommend at least 8B parameters. Qwen 2.5 and Llama 3.1 have the best instruction-following.
+        <strong>🧠 Verifying your install:</strong> After downloading, test with<br>
+        <code style="background:var(--code-bg);padding:0.15rem 0.4rem;border-radius:4px">ollama run ${best ? best.name : 'llama3.2:3b'} "Hello, are you working?"</code>
       </div>
 
       <div class="btn-row">
@@ -724,6 +823,11 @@ function copyCode(btn, text) {
 if (!state.os) state.os = detectOS();
 if (state.os === 'macos') state.gpu = 'apple-silicon';
 renderAll();
+
+function goToLang(lang) {
+  localStorage.setItem('hermes_lang', lang);
+  window.location.href = 'index.html';
+}
 </script>
 
 </body>

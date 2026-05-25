@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search Hermes Knowledge Base</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --orange: #d2991d; --purple: #a371f7;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
+  }
+  nav {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 1.5rem; display: flex; align-items: center; gap: 0;
+    position: sticky; top: 0; z-index: 10;
+  }
+  nav .logo {
+    font-weight: 700; font-size: 1.1rem; color: #fff;
+    text-decoration: none; padding: 1rem 0; margin-right: auto;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  nav a.nav-link {
+    color: var(--muted); text-decoration: none; padding: 1rem 1rem;
+    font-size: 0.9rem; border-bottom: 2px solid transparent; transition: all 0.15s;
+  }
+  nav a.nav-link:hover, nav a.nav-link.active { color: var(--text); border-bottom-color: var(--accent); }
+  nav .lang-select {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 0.3rem 0.5rem; font-size: 0.8rem;
+    font-family: inherit; cursor: pointer; margin-left: 0.5rem;
+  }
+
+  .page-header {
+    text-align: center; padding: 3rem 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-header h1 { font-size: 2rem; font-weight: 700; color: #fff; }
+  .page-header p { color: var(--muted); margin-top: 0.5rem; font-size: 1.05rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+  main { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* ── Search Box ── */
+  .search-box {
+    position: relative; margin-bottom: 1.5rem;
+  }
+  .search-box input {
+    width: 100%; padding: 1rem 1.2rem; font-size: 1.1rem;
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-family: inherit;
+  }
+  .search-box input:focus { outline: none; border-color: var(--accent); }
+  .search-box input::placeholder { color: var(--muted); }
+  .search-box .shortcut {
+    position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+    font-size: 0.72rem; color: var(--muted); pointer-events: none;
+  }
+  .search-hint {
+    font-size: 0.78rem; color: var(--muted); margin-bottom: 1.5rem; text-align: center;
+  }
+
+  /* ── Results ── */
+  .result-count { font-size: 0.82rem; color: var(--muted); margin-bottom: 1rem; }
+  .result {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.2rem 1.5rem; margin-bottom: 0.8rem;
+    transition: border-color 0.15s;
+  }
+  .result:hover { border-color: var(--accent); }
+  .result .r-title {
+    font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 0.3rem;
+  }
+  .result .r-title .category {
+    font-size: 0.65rem; padding: 0.15rem 0.5rem; border-radius: 10px;
+    margin-left: 0.5rem; font-weight: 500;
+  }
+  .cat-cli { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .cat-config { background: rgba(163,113,247,0.15); color: var(--purple); }
+  .cat-provider { background: rgba(210,153,29,0.15); color: var(--orange); }
+  .cat-tip { background: rgba(63,185,80,0.15); color: var(--green); }
+  .cat-command { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .result .r-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.55; }
+  .result .r-code {
+    margin-top: 0.5rem; padding: 0.5rem 0.8rem; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 4px;
+    font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.82rem;
+    color: var(--green);
+  }
+  .result .r-link { font-size: 0.78rem; color: var(--accent); margin-top: 0.4rem; display: inline-block; }
+
+  .empty-results {
+    text-align: center; padding: 3rem 1.5rem; color: var(--muted);
+  }
+  .empty-results .icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+
+  /* ── Quick Links ── */
+  .quick-links { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .quick-link {
+    padding: 0.35rem 0.8rem; font-size: 0.8rem; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; color: var(--muted); font-family: inherit;
+    transition: all 0.15s;
+  }
+  .quick-link:hover { border-color: var(--accent); color: var(--accent); }
+
+  footer {
+    text-align: center; padding: 2rem 1.5rem; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 0.82rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    nav { flex-wrap: wrap; justify-content: center; }
+    nav .logo { margin-right: 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">🚀 Hermes Deploy Guide</a>
+  <a href="index.html" class="nav-link">Home</a>
+  <a href="deploy.html" class="nav-link">Deploy</a>
+  <a href="commands.html" class="nav-link">Commands</a>
+  <a href="train.html" class="nav-link">Train</a>
+  <a href="search.html" class="nav-link active">Search</a>
+  <a href="community.html" class="nav-link">Community</a>
+  <select class="lang-select" onchange="setUILanguage(this.value)">
+    <option value="en">🇺🇸 EN</option>
+    <option value="zh">🇨🇳 中文</option>
+    <option value="ko">🇰🇷 한국어</option>
+    <option value="es">🇪🇸 ES</option>
+  </select>
+</nav>
+
+<div class="page-header" id="pageHeader">
+  <h1>🔍 Search Hermes Knowledge</h1>
+  <p>Search commands, configuration, best practices, and more. Supports English, Chinese, Korean, and Spanish.</p>
+</div>
+
+<main>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search for Hermes commands, tips, configuration..."
+      oninput="doSearch()" autofocus>
+    <span class="shortcut">Type to search</span>
+  </div>
+  <div class="search-hint" id="searchHint">Try: "install", "model setup", "Telegram", "profile", "cron", or type in Chinese/Korean/Spanish</div>
+
+  <div class="quick-links" id="quickLinks">
+    <button class="quick-link" onclick="quickSearch('hermes setup')">hermes setup</button>
+    <button class="quick-link" onclick="quickSearch('profile')">profile</button>
+    <button class="quick-link" onclick="quickSearch('model')">model</button>
+    <button class="quick-link" onclick="quickSearch('gateway')">gateway</button>
+    <button class="quick-link" onclick="quickSearch('cron')">cron</button>
+    <button class="quick-link" onclick="quickSearch('Telegram')">Telegram</button>
+    <button class="quick-link" onclick="quickSearch('config')">config</button>
+    <button class="quick-link" onclick="quickSearch('Ollama')">Ollama</button>
+    <button class="quick-link" onclick="quickSearch('DeepSeek')">DeepSeek</button>
+    <button class="quick-link" onclick="quickSearch('skills')">skills</button>
+  </div>
+
+  <div class="result-count" id="resultCount"></div>
+  <div id="results"></div>
+</main>
+
+<footer>
+  <span id="footerBuilt">Knowledge base sourced from</span>
+  <a href="https://hermes-agent.nousresearch.com/docs/" target="_blank">Hermes Agent Docs</a>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════
+// KNOWLEDGE BASE — Multilingual
+// ═══════════════════════════════════════════
+const KB = [
+  // ── Quick Start / Installation ──
+  { id:1, cat:'cli', en:'Install Hermes', zh:'安装 Hermes', ko:'Hermes 설치', es:'Instalar Hermes',
+    desc_en:'One-command install for Linux/macOS/WSL2. Downloads and sets up Hermes automatically.',
+    desc_zh:'Linux/macOS/WSL2 一条命令安装。自动下载并设置 Hermes。',
+    desc_ko:'Linux/macOS/WSL2에서 한 줄 명령어로 설치. Hermes를 자동으로 다운로드하고 설정합니다.',
+    desc_es:'Instalación con un solo comando para Linux/macOS/WSL2. Descarga y configura Hermes automáticamente.',
+    code:'curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash',
+    link:'https://hermes-agent.nousresearch.com/docs/#install' },
+  { id:2, cat:'cli', en:'Windows Install (PowerShell)', zh:'Windows 安装 (PowerShell)', ko:'Windows 설치 (PowerShell)', es:'Instalación en Windows (PowerShell)',
+    desc_en:'Native Windows install via PowerShell. Early beta — see docs for details.',
+    desc_zh:'通过 PowerShell 原生 Windows 安装。早期测试版 — 详情见文档。',
+    desc_ko:'PowerShell을 통한 네이티브 Windows 설치. 초기 베타 — 자세한 내용은 문서 참조.',
+    desc_es:'Instalación nativa en Windows vía PowerShell. Beta temprana — ver docs.',
+    code:'iex (irm https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.ps1)',
+    link:'https://hermes-agent.nousresearch.com/docs/#install' },
+  { id:3, cat:'cli', en:'Setup Wizard', zh:'设置向导', ko:'설정 마법사', es:'Asistente de Configuración',
+    desc_en:'Interactive setup wizard. Guides you through model provider, terminal, gateway, and tools configuration.',
+    desc_zh:'交互式设置向导。引导你完成模型提供商、终端、网关和工具配置。',
+    desc_ko:'대화형 설정 마법사. 모델 제공자, 터미널, 게이트웨이, 도구 설정을 안내합니다.',
+    desc_es:'Asistente interactivo. Te guía por la configuración del proveedor, terminal, gateway y herramientas.',
+    code:'hermes setup', link:'' },
+  { id:4, cat:'cli', en:'Start Chat Session', zh:'开始对话', ko:'채팅 시작', es:'Iniciar Chat',
+    desc_en:'Launch interactive chat mode. Start talking to your Hermes agent.',
+    desc_zh:'启动交互式聊天模式。开始与你的 Hermes 代理对话。',
+    desc_ko:'대화형 채팅 모드를 시작합니다. Hermes 에이전트와 대화를 시작하세요.',
+    desc_es:'Inicia el modo chat interactivo. Empieza a hablar con tu agente Hermes.',
+    code:'hermes', link:'' },
+  { id:5, cat:'cli', en:'One-Shot Query', zh:'单次查询', ko:'단일 쿼리', es:'Consulta Única',
+    desc_en:'Ask a single question without entering interactive mode. Great for quick tasks and scripting.',
+    desc_zh:'在不进入交互模式的情况下提问。适合快速任务和脚本编写。',
+    desc_ko:'대화형 모드에 들어가지 않고 단일 질문을 합니다. 빠른 작업과 스크립팅에 유용합니다.',
+    desc_es:'Haz una sola pregunta sin entrar en modo interactivo. Ideal para tareas rápidas y scripting.',
+    code:'hermes chat -q "What is the capital of France?"', link:'' },
+
+  // ── Models & Providers ──
+  { id:10, cat:'provider', en:'Switch Model', zh:'切换模型', ko:'모델 전환', es:'Cambiar Modelo',
+    desc_en:'Interactive model picker. Browse and switch between all configured providers and models.',
+    desc_zh:'交互式模型选择器。浏览并切换所有已配置的提供商和模型。',
+    desc_ko:'대화형 모델 선택기. 구성된 모든 제공자와 모델을 탐색하고 전환합니다.',
+    desc_es:'Selector de modelos interactivo. Navega y cambia entre todos los proveedores y modelos configurados.',
+    code:'hermes model', link:'' },
+  { id:11, cat:'provider', en:'Ollama (Local)', zh:'Ollama (本地)', ko:'Ollama (로컬)', es:'Ollama (Local)',
+    desc_en:'Run models locally with Ollama. No API key needed. Set base_url to http://localhost:11434 in hermes setup.',
+    desc_zh:'使用 Ollama 在本地运行模型。无需 API Key。在 hermes setup 中将 base_url 设置为 http://localhost:11434。',
+    desc_ko:'Ollama로 모델을 로컬에서 실행하세요. API 키가 필요 없습니다. hermes setup에서 base_url을 http://localhost:11434로 설정하세요.',
+    desc_es:'Ejecuta modelos localmente con Ollama. Sin API key. Configura base_url a http://localhost:11434 en hermes setup.',
+    code:'hermes setup  →  Choose "Ollama"  →  http://localhost:11434', link:'https://ollama.com' },
+  { id:12, cat:'provider', en:'DeepSeek API', zh:'DeepSeek API', ko:'DeepSeek API', es:'API de DeepSeek',
+    desc_en:'Affordable cloud model. Top-tier reasoning. Set DEEPSEEK_API_KEY in ~/.hermes/.env. Models: deepseek-chat, deepseek-reasoner.',
+    desc_zh:'经济实惠的云端模型。顶级推理能力。在 ~/.hermes/.env 中设置 DEEPSEEK_API_KEY。模型: deepseek-chat, deepseek-reasoner。',
+    desc_ko:'저렴한 클라우드 모델. 최고 수준의 추론. ~/.hermes/.env에 DEEPSEEK_API_KEY 설정. 모델: deepseek-chat, deepseek-reasoner.',
+    desc_es:'Modelo en la nube económico. Razonamiento de primer nivel. Configura DEEPSEEK_API_KEY en ~/.hermes/.env.',
+    code:'hermes config set model.provider deepseek', link:'https://platform.deepseek.com' },
+  { id:13, cat:'provider', en:'Kimi (Moonshot)', zh:'Kimi (月之暗面)', ko:'Kimi (Moonshot)', es:'Kimi (Moonshot)',
+    desc_en:'128K context window. Set KIMI_API_KEY in ~/.hermes/.env. Model: moonshot-v1-128k.',
+    desc_zh:'128K 上下文窗口。在 ~/.hermes/.env 中设置 KIMI_API_KEY。模型: moonshot-v1-128k。',
+    desc_ko:'128K 컨텍스트 윈도우. ~/.hermes/.env에 KIMI_API_KEY 설정. 모델: moonshot-v1-128k.',
+    desc_es:'Ventana de contexto de 128K. Configura KIMI_API_KEY en ~/.hermes/.env.',
+    code:'hermes config set model.provider kimi', link:'https://platform.moonshot.cn' },
+  { id:14, cat:'provider', en:'GLM (Zhipu)', zh:'GLM (智谱)', ko:'GLM (Zhipu)', es:'GLM (Zhipu)',
+    desc_en:'Most affordable. Strong bilingual (CN/EN). Set GLM_API_KEY. Models: glm-4-flash, glm-4-plus.',
+    desc_zh:'最实惠的选择。强大的中英双语支持。设置 GLM_API_KEY。模型: glm-4-flash, glm-4-plus。',
+    desc_ko:'가장 저렴한 옵션. 강력한 중영 이중 언어 지원. GLM_API_KEY 설정. 모델: glm-4-flash, glm-4-plus.',
+    desc_es:'El más económico. Fuerte soporte bilingüe (CN/EN). Configura GLM_API_KEY.',
+    code:'hermes config set model.provider glm', link:'https://open.bigmodel.cn' },
+
+  // ── CLI Commands ──
+  { id:20, cat:'command', en:'View Configuration', zh:'查看配置', ko:'설정 보기', es:'Ver Configuración',
+    desc_en:'Display all current settings from config.yaml.',
+    desc_zh:'显示 config.yaml 中的所有当前设置。',
+    desc_ko:'config.yaml의 모든 현재 설정을 표시합니다.',
+    desc_es:'Muestra todas las configuraciones actuales de config.yaml.',
+    code:'hermes config', link:'' },
+  { id:21, cat:'command', en:'Edit Configuration', zh:'编辑配置', ko:'설정 편집', es:'Editar Configuración',
+    desc_en:'Open config.yaml in your default editor ($EDITOR).',
+    desc_zh:'在默认编辑器 ($EDITOR) 中打开 config.yaml。',
+    desc_ko:'기본 편집기($EDITOR)에서 config.yaml을 엽니다.',
+    desc_es:'Abre config.yaml en tu editor predeterminado ($EDITOR).',
+    code:'hermes config edit', link:'' },
+  { id:22, cat:'command', en:'Set Config Value', zh:'设置配置值', ko:'설정 값 지정', es:'Establecer Valor',
+    desc_en:'Set a specific config value. API keys auto-saved to .env, rest to config.yaml.',
+    desc_zh:'设置特定配置值。API Key 自动保存到 .env，其余保存到 config.yaml。',
+    desc_ko:'특정 설정 값을 지정합니다. API 키는 자동으로 .env에, 나머지는 config.yaml에 저장됩니다.',
+    desc_es:'Establece un valor de configuración. Las API keys se guardan en .env, el resto en config.yaml.',
+    code:'hermes config set KEY VALUE', link:'' },
+  { id:23, cat:'command', en:'System Health Check', zh:'系统健康检查', ko:'시스템 상태 확인', es:'Chequeo de Salud',
+    desc_en:'Diagnostic tool. Checks Python, config, .env, git, gh CLI, Ollama status, and more.',
+    desc_zh:'诊断工具。检查 Python、配置、.env、git、gh CLI、Ollama 状态等。',
+    desc_ko:'진단 도구. Python, 설정, .env, git, gh CLI, Ollama 상태 등을 확인합니다.',
+    desc_es:'Herramienta de diagnóstico. Verifica Python, config, .env, git, gh CLI, Ollama, y más.',
+    code:'hermes doctor', link:'' },
+  { id:24, cat:'command', en:'Component Status', zh:'组件状态', ko:'구성 요소 상태', es:'Estado de Componentes',
+    desc_en:'Show status of all components: gateway, cron, memory, skills, sessions.',
+    desc_zh:'显示所有组件的状态：网关、定时任务、记忆、技能、会话。',
+    desc_ko:'모든 구성 요소의 상태 표시: 게이트웨이, 크론, 메모리, 스킬, 세션.',
+    desc_es:'Muestra el estado de todos los componentes: gateway, cron, memoria, skills, sesiones.',
+    code:'hermes status --all', link:'' },
+
+  // ── Gateway / Messaging ──
+  { id:30, cat:'cli', en:'Gateway Setup', zh:'网关设置', ko:'게이트웨이 설정', es:'Configurar Gateway',
+    desc_en:'Interactive wizard to configure messaging platforms: Telegram, Discord, Slack, WhatsApp, WeChat, and more.',
+    desc_zh:'交互式向导，配置消息平台：Telegram、Discord、Slack、WhatsApp、微信等。',
+    desc_ko:'메시징 플랫폼 구성을 위한 대화형 마법사: Telegram, Discord, Slack, WhatsApp, WeChat 등.',
+    desc_es:'Asistente interactivo para configurar plataformas de mensajería: Telegram, Discord, Slack, WhatsApp, WeChat, etc.',
+    code:'hermes gateway setup', link:'https://hermes-agent.nousresearch.com/docs/user-guide/messaging/' },
+  { id:31, cat:'cli', en:'Start Gateway', zh:'启动网关', ko:'게이트웨이 시작', es:'Iniciar Gateway',
+    desc_en:'Run the gateway in the foreground. Hermes connects to all configured messaging platforms.',
+    desc_zh:'在前台运行网关。Hermes 连接到所有已配置的消息平台。',
+    desc_ko:'게이트웨이를 포그라운드에서 실행합니다. Hermes가 구성된 모든 메시징 플랫폼에 연결됩니다.',
+    desc_es:'Ejecuta el gateway en primer plano. Hermes se conecta a todas las plataformas configuradas.',
+    code:'hermes gateway run', link:'' },
+  { id:32, cat:'cli', en:'Gateway as Service', zh:'网关后台服务', ko:'게이트웨이 서비스', es:'Gateway como Servicio',
+    desc_en:'Install gateway as a background service. Survives reboots. Use hermes gateway start/stop to control.',
+    desc_zh:'将网关安装为后台服务。重启后仍然运行。使用 hermes gateway start/stop 控制。',
+    desc_ko:'게이트웨이를 백그라운드 서비스로 설치합니다. 재부팅 후에도 유지됩니다.',
+    desc_es:'Instala el gateway como servicio en segundo plano. Sobrevive a reinicios.',
+    code:'hermes gateway install', link:'' },
+
+  // ── Profiles ──
+  { id:40, cat:'cli', en:'Create Profile', zh:'创建配置文件', ko:'프로필 생성', es:'Crear Perfil',
+    desc_en:'Create an isolated profile with its own config, skills, and memory. Perfect for separating work and personal use.',
+    desc_zh:'创建一个独立的配置文件，拥有自己的配置、技能和记忆。适合分离工作和个人使用。',
+    desc_ko:'자체 설정, 스킬, 메모리를 가진 격리된 프로필을 생성합니다. 업무와 개인 용도를 분리하는 데 적합.',
+    desc_es:'Crea un perfil aislado con su propia config, skills y memoria. Perfecto para separar trabajo y uso personal.',
+    code:'hermes profile create work', link:'' },
+  { id:41, cat:'cli', en:'List Profiles', zh:'列出配置文件', ko:'프로필 목록', es:'Listar Perfiles',
+    desc_en:'Show all profiles. Active profile is marked with ▶.',
+    desc_zh:'显示所有配置文件。活动配置文件标记为 ▶。',
+    desc_ko:'모든 프로필을 표시합니다. 활성 프로필은 ▶로 표시됩니다.',
+    desc_es:'Muestra todos los perfiles. El perfil activo está marcado con ▶.',
+    code:'hermes profile list', link:'' },
+  { id:42, cat:'cli', en:'Switch Profile', zh:'切换配置文件', ko:'프로필 전환', es:'Cambiar Perfil',
+    desc_en:'Use a specific profile for a session. Each profile has isolated context.',
+    desc_zh:'为会话使用特定配置文件。每个配置文件都有隔离的上下文。',
+    desc_ko:'세션에 특정 프로필을 사용합니다. 각 프로필은 격리된 컨텍스트를 가집니다.',
+    desc_es:'Usa un perfil específico para una sesión. Cada perfil tiene contexto aislado.',
+    code:'hermes --profile work', link:'' },
+
+  // ── Sessions ──
+  { id:50, cat:'cli', en:'List Sessions', zh:'列出会话', ko:'세션 목록', es:'Listar Sesiones',
+    desc_en:'View recent conversation history. Shows session IDs, titles, and timestamps.',
+    desc_zh:'查看最近的对话历史。显示会话 ID、标题和时间戳。',
+    desc_ko:'최근 대화 기록을 봅니다. 세션 ID, 제목, 타임스탬프를 표시합니다.',
+    desc_es:'Ver historial de conversaciones recientes. Muestra IDs de sesión, títulos y marcas de tiempo.',
+    code:'hermes sessions list', link:'' },
+  { id:51, cat:'cli', en:'Resume Session', zh:'恢复会话', ko:'세션 재개', es:'Reanudar Sesión',
+    desc_en:'Continue your most recent session. All context, memory, and file references are restored.',
+    desc_zh:'继续最近的会话。所有上下文、记忆和文件引用都会恢复。',
+    desc_ko:'가장 최근 세션을 계속합니다. 모든 컨텍스트, 메모리, 파일 참조가 복원됩니다.',
+    desc_es:'Continúa tu sesión más reciente. Todo el contexto, memoria y referencias de archivos se restauran.',
+    code:'hermes --continue', link:'' },
+  { id:52, cat:'command', en:'Fresh Session (in-chat)', zh:'新会话 (聊天中)', ko:'새 세션 (채팅 중)', es:'Nueva Sesión (en chat)',
+    desc_en:'Start a fresh conversation. Clears all current context. Type during an active Hermes chat session.',
+    desc_zh:'开始新对话。清除所有当前上下文。在 Hermes 聊天会话中输入。',
+    desc_ko:'새 대화를 시작합니다. 모든 현재 컨텍스트를 지웁니다. 활성 Hermes 채팅 세션 중에 입력하세요.',
+    desc_es:'Inicia una nueva conversación. Borra todo el contexto actual. Escribe durante una sesión activa de Hermes.',
+    code:'/new', link:'' },
+
+  // ── Tools ──
+  { id:60, cat:'command', en:'Manage Tools', zh:'管理工具', ko:'도구 관리', es:'Gestionar Herramientas',
+    desc_en:'Interactive TUI to enable/disable toolsets per platform (browser, terminal, file, vision, etc.).',
+    desc_zh:'交互式 TUI，按平台启用/禁用工具集（浏览器、终端、文件、视觉等）。',
+    desc_ko:'플랫폼별 도구 세트를 활성화/비활성화하는 대화형 TUI.',
+    desc_es:'TUI interactiva para habilitar/deshabilitar conjuntos de herramientas por plataforma.',
+    code:'hermes tools', link:'' },
+  { id:61, cat:'command', en:'Enable Toolset', zh:'启用工具集', ko:'도구 세트 활성화', es:'Habilitar Herramientas',
+    desc_en:'Enable a specific toolset. Changes take effect on next session (/new or restart).',
+    desc_zh:'启用特定工具集。更改在下一次会话（/new 或重启）时生效。',
+    desc_ko:'특정 도구 세트를 활성화합니다. 변경 사항은 다음 세션(/new 또는 재시작)에 적용됩니다.',
+    desc_es:'Habilita un conjunto de herramientas específico. Los cambios surten efecto en la próxima sesión.',
+    code:'hermes tools enable browser', link:'' },
+
+  // ── Cron ──
+  { id:70, cat:'cli', en:'Create Cron Job', zh:'创建定时任务', ko:'크론 작업 생성', es:'Crear Tarea Cron',
+    desc_en:'Schedule recurring tasks. Formats: "30m", "every 2h", "0 9 * * *", "every monday 9am".',
+    desc_zh:'安排重复任务。格式："30m"、"every 2h"、"0 9 * * *"、"every monday 9am"。',
+    desc_ko:'반복 작업을 예약합니다. 형식: "30m", "every 2h", "0 9 * * *", "every monday 9am".',
+    desc_es:'Programa tareas recurrentes. Formatos: "30m", "every 2h", "0 9 * * *", "every monday 9am".',
+    code:'hermes cron create "every morning 8am"', link:'' },
+  { id:71, cat:'cli', en:'List Cron Jobs', zh:'列出定时任务', ko:'크론 작업 목록', es:'Listar Tareas Cron',
+    desc_en:'View all scheduled jobs and their status.',
+    desc_zh:'查看所有已安排的任务及其状态。',
+    desc_ko:'모든 예약된 작업과 상태를 봅니다.',
+    desc_es:'Ver todos los trabajos programados y su estado.',
+    code:'hermes cron list', link:'' },
+
+  // ── Skills ──
+  { id:80, cat:'command', en:'Search Skills', zh:'搜索技能', ko:'스킬 검색', es:'Buscar Skills',
+    desc_en:'Search the skills hub for reusable workflows created by the community.',
+    desc_zh:'在技能中心搜索社区创建的可重用工作流。',
+    desc_ko:'커뮤니티에서 만든 재사용 가능한 워크플로우를 스킬 허브에서 검색합니다.',
+    desc_es:'Busca en el hub de skills flujos de trabajo reutilizables creados por la comunidad.',
+    code:'hermes skills search QUERY', link:'' },
+  { id:81, cat:'command', en:'Install Skill', zh:'安装技能', ko:'스킬 설치', es:'Instalar Skill',
+    desc_en:'Install a skill from the hub or from a direct URL.',
+    desc_zh:'从技能中心或直接 URL 安装技能。',
+    desc_ko:'허브 또는 직접 URL에서 스킬을 설치합니다.',
+    desc_es:'Instala una skill desde el hub o desde una URL directa.',
+    code:'hermes skills install SKILL_ID', link:'' },
+  { id:82, cat:'command', en:'Load Skill in Session', zh:'在会话中加载技能', ko:'세션에 스킬 로드', es:'Cargar Skill en Sesión',
+    desc_en:'Load a skill during an active chat session. Skills provide specialized workflows and knowledge.',
+    desc_zh:'在活动聊天会话中加载技能。技能提供专门的工作流和知识。',
+    desc_ko:'활성 채팅 세션 중에 스킬을 로드합니다. 스킬은 특화된 워크플로우와 지식을 제공합니다.',
+    desc_es:'Carga una skill durante una sesión de chat activa. Las skills proporcionan flujos de trabajo y conocimiento especializado.',
+    code:'/skill github-pr-workflow', link:'' },
+
+  // ── Tips ──
+  { id:90, cat:'tip', en:'Be Specific with Prompts', zh:'提示要具体', ko:'구체적인 프롬프트', es:'Sé Específico con los Prompts',
+    desc_en:'Include file paths, line numbers, error messages. "Fix TypeError in api/handlers.py line 47" beats "fix the code".',
+    desc_zh:'包含文件路径、行号、错误消息。"修复 api/handlers.py 第 47 行的 TypeError"比"修复代码"好。',
+    desc_ko:'파일 경로, 줄 번호, 오류 메시지를 포함하세요. "api/handlers.py 47행의 TypeError 수정"이 "코드 수정"보다 낫습니다.',
+    desc_es:'Incluye rutas de archivo, números de línea, mensajes de error. "Arregla TypeError en api/handlers.py línea 47" supera a "arregla el código".',
+    code:'', link:'' },
+  { id:91, cat:'tip', en:'Use AGENTS.md', zh:'使用 AGENTS.md', ko:'AGENTS.md 사용', es:'Usa AGENTS.md',
+    desc_en:'Create an AGENTS.md in your project root with recurring instructions (coding style, test framework, endpoints). Hermes reads it every session.',
+    desc_zh:'在项目根目录创建 AGENTS.md 文件，包含重复的指令（编码风格、测试框架、端点）。Hermes 每次会话都会读取。',
+    desc_ko:'프로젝트 루트에 AGENTS.md를 만들어 반복되는 지침(코딩 스타일, 테스트 프레임워크, 엔드포인트)을 작성하세요.',
+    desc_es:'Crea un AGENTS.md en la raíz de tu proyecto con instrucciones recurrentes. Hermes lo lee en cada sesión.',
+    code:'', link:'' },
+  { id:92, cat:'tip', en:'Use Persistent Memory', zh:'使用持久记忆', ko:'영구 메모리 사용', es:'Usa Memoria Persistente',
+    desc_en:'Tell Hermes your preferences once: "Remember I prefer tabs over spaces". It saves them across sessions.',
+    desc_zh:'一次告诉 Hermes 你的偏好："记住我喜欢用 tab 而非空格"。它会跨会话保存。',
+    desc_ko:'Hermes에게 한 번만 알려주세요: "탭을 스페이스보다 선호한다는 것을 기억해". 세션 간에 저장됩니다.',
+    desc_es:'Dile a Hermes tus preferencias una vez: "Recuerda que prefiero tabs sobre espacios". Las guarda entre sesiones.',
+    code:'', link:'' },
+  { id:93, cat:'tip', en:'Switch Models Mid-Task', zh:'任务中切换模型', ko:'작업 중 모델 전환', es:'Cambiar Modelo a Mitad de Tarea',
+    desc_en:'Use /model during a chat to swap between fast/local and powerful/cloud models without restarting.',
+    desc_zh:'在聊天中使用 /model 在快速/本地和强大/云端模型之间切换，无需重启。',
+    desc_ko:'채팅 중에 /model을 사용하여 재시작 없이 빠른/로컬 모델과 강력한/클라우드 모델 간에 전환하세요.',
+    desc_es:'Usa /model durante el chat para cambiar entre modelos rápidos/locales y potentes/nube sin reiniciar.',
+    code:'/model', link:'' },
+  { id:94, cat:'tip', en:'Automate with Cron', zh:'使用 Cron 自动化', ko:'크론으로 자동화', es:'Automatiza con Cron',
+    desc_en:'Schedule daily briefings, PR monitoring, system health checks. Hermes runs on schedule and delivers to your messaging app.',
+    desc_zh:'安排每日简报、PR 监控、系统健康检查。Hermes 按计划运行并发送到你的消息应用。',
+    desc_ko:'매일 브리핑, PR 모니터링, 시스템 상태 확인을 예약하세요. Hermes가 일정에 따라 실행되고 메시징 앱으로 전달합니다.',
+    desc_es:'Programa resúmenes diarios, monitoreo de PRs, chequeos de salud del sistema.',
+    code:'hermes cron create "every morning 8am"', link:'' },
+  { id:95, cat:'tip', en:'Delegate Complex Tasks', zh:'委派复杂任务', ko:'복잡한 작업 위임', es:'Delega Tareas Complejas',
+    desc_en:'Use delegate_task for parallel workstreams. Spawn sub-agents that work independently and return summaries.',
+    desc_zh:'使用 delegate_task 进行并行工作流。生成独立工作的子代理并返回摘要。',
+    desc_ko:'병렬 워크스트림에 delegate_task를 사용하세요. 독립적으로 작업하고 요약을 반환하는 하위 에이전트를 생성합니다.',
+    desc_es:'Usa delegate_task para flujos de trabajo paralelos. Genera sub-agentes que trabajan independientemente.',
+    code:'', link:'' },
+];
+
+// ── UI Language ──
+const UI = {
+  en: { searchPlaceholder:'Search for Hermes commands, tips, configuration...', hint:'Try: "install", "model setup", "Telegram", "profile", "cron", or type in Chinese/Korean/Spanish', resultsFor:'Results for', noResults:'No results found for', tryDiff:'Try different keywords or check the quick links above.', footerBuilt:'Knowledge base sourced from', title:'Search Hermes Knowledge', subtitle:'Search commands, configuration, best practices, and more. Supports English, Chinese, Korean, and Spanish.' },
+  zh: { searchPlaceholder:'搜索 Hermes 命令、提示、配置...', hint:'试试: "安装", "模型设置", "Telegram", "配置文件", "cron"', resultsFor:'搜索结果', noResults:'未找到结果', tryDiff:'尝试不同的关键词或查看上面的快速链接。', footerBuilt:'知识库来源', title:'搜索 Hermes 知识库', subtitle:'搜索命令、配置、最佳实践等。支持英文、中文、韩文和西班牙文。' },
+  ko: { searchPlaceholder:'Hermes 명령어, 팁, 설정 검색...', hint:'검색어: "설치", "모델 설정", "Telegram", "프로필", "cron"', resultsFor:'검색 결과', noResults:'결과를 찾을 수 없습니다', tryDiff:'다른 키워드를 시도하거나 위의 빠른 링크를 확인하세요.', footerBuilt:'지식 베이스 출처', title:'Hermes 지식 검색', subtitle:'명령어, 설정, 모범 사례 등을 검색하세요. 영어, 중국어, 한국어, 스페인어를 지원합니다.' },
+  es: { searchPlaceholder:'Buscar comandos, tips, configuración de Hermes...', hint:'Prueba: "instalar", "configuración de modelo", "Telegram", "perfil", "cron"', resultsFor:'Resultados para', noResults:'Sin resultados para', tryDiff:'Prueba con otras palabras clave o revisa los enlaces rápidos.', footerBuilt:'Base de conocimiento de', title:'Buscar Conocimiento de Hermes', subtitle:'Busca comandos, configuración, mejores prácticas y más. Admite inglés, chino, coreano y español.' },
+};
+
+let uiLang = localStorage.getItem('hermes_lang') || 'en';
+
+function setUILanguage(lang) {
+  uiLang = lang;
+  localStorage.setItem('hermes_lang', lang);
+  document.documentElement.lang = lang;
+  document.querySelector('.lang-select').value = lang;
+  document.getElementById('searchInput').placeholder = UI[lang].searchPlaceholder;
+  document.getElementById('searchHint').textContent = UI[lang].hint;
+  document.getElementById('footerBuilt').textContent = UI[lang].footerBuilt;
+  document.querySelector('.page-header h1').textContent = '🔍 ' + UI[lang].title;
+  document.querySelector('.page-header p').textContent = UI[lang].subtitle;
+  document.title = UI[lang].title;
+  doSearch();
+}
+
+function doSearch() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const container = document.getElementById('results');
+  const countEl = document.getElementById('resultCount');
+
+  if (!q) {
+    countEl.textContent = '';
+    container.innerHTML = '';
+    return;
+  }
+
+  const u = uiLang;
+  const descKey = 'desc_' + u;
+  
+  // Score each entry
+  const scored = KB.map(entry => {
+    let score = 0;
+    const searchIn = [
+      entry.en || '', entry.zh || '', entry.ko || '', entry.es || '',
+      entry[descKey] || '', entry.code || '',
+    ].join(' ').toLowerCase();
+
+    const terms = q.split(/\s+/);
+    for (const term of terms) {
+      if (searchIn.includes(term)) score += 10;
+      // Partial match bonus
+      if (searchIn.includes(term.slice(0, 3))) score += 3;
+    }
+    // Exact title match bonus
+    const titleField = entry[u] || entry.en;
+    if (titleField.toLowerCase().includes(q)) score += 15;
+    // Code match bonus
+    if ((entry.code || '').toLowerCase().includes(q)) score += 12;
+
+    return { entry, score };
+  }).filter(s => s.score > 0).sort((a, b) => b.score - a.score);
+
+  countEl.textContent = scored.length > 0
+    ? `${scored.length} ${UI[u].resultsFor} "${q}"`
+    : '';
+
+  if (scored.length === 0) {
+    container.innerHTML = `
+      <div class="empty-results">
+        <span class="icon">🔎</span>
+        <p>${UI[u].noResults} "<strong>${q}</strong>"</p>
+        <p>${UI[u].tryDiff}</p>
+      </div>`;
+    return;
+  }
+
+  const catLabels = { cli:'CLI', command:'Slash', config:'Config', provider:'Provider', tip:'Tip' };
+  const catClasses = { cli:'cat-cli', command:'cat-command', config:'cat-config', provider:'cat-provider', tip:'cat-tip' };
+
+  container.innerHTML = scored.map(({ entry }) => {
+    const title = entry[u] || entry.en;
+    const desc = entry[descKey] || entry.desc_en;
+    const cat = catLabels[entry.cat] || entry.cat;
+    const catCls = catClasses[entry.cat] || '';
+    return `
+      <div class="result">
+        <div class="r-title">
+          ${title}
+          <span class="category ${catCls}">${cat}</span>
+        </div>
+        <div class="r-desc">${desc}</div>
+        ${entry.code ? `<div class="r-code">$ ${entry.code}</div>` : ''}
+        ${entry.link ? `<a class="r-link" href="${entry.link}" target="_blank">📖 Read more →</a>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function quickSearch(term) {
+  document.getElementById('searchInput').value = term;
+  doSearch();
+  document.getElementById('searchInput').focus();
+}
+
+// Init
+setUILanguage(uiLang);
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Escape') { document.getElementById('searchInput').value = ''; doSearch(); }
+});
+// Auto-focus search on "/" keypress
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== document.getElementById('searchInput')) {
+    e.preventDefault();
+    document.getElementById('searchInput').focus();
+  }
+});
+</script>
+
+</body>
+</html>

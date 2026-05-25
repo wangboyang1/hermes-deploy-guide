@@ -148,7 +148,14 @@
   <a href="deploy.html" class="nav-link">Deploy</a>
   <a href="commands.html" class="nav-link">Commands</a>
   <a href="train.html" class="nav-link">Train</a>
+  <a href="search.html" class="nav-link">Search</a>
   <a href="community.html" class="nav-link active">Community</a>
+  <select class="lang-select" onchange="goToLang(this.value)" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:0.3rem 0.5rem;font-size:0.8rem;font-family:inherit;cursor:pointer;margin-left:0.5rem">
+    <option value="en">🇺🇸 EN</option>
+    <option value="zh">🇨🇳 中文</option>
+    <option value="ko">🇰🇷 한국어</option>
+    <option value="es">🇪🇸 ES</option>
+  </select>
 </nav>
 
 <div class="page-header">
@@ -350,6 +357,11 @@ function escapeHtml(str) {
 
 // ── Init ──
 renderPosts();
+
+function goToLang(lang) {
+  localStorage.setItem('hermes_lang', lang);
+  window.location.href = 'index.html';
+}
 </script>
 
 </body>

@@ -27,6 +27,7 @@ A step-by-step interactive guide for non-technical users to deploy [Hermes Agent
 | **Deploy** (`deploy.html`) | Interactive 6-step wizard with OS detection, model recommendations, cloud API setup, and copy-paste commands |
 | **Commands** (`commands.html`) | Terminal basics for macOS and Windows, full Hermes CLI reference, and Best Practices & Pro Tips from the official docs |
 | **Train** (`train.html`) | 🆕 Interactive terminal simulator — 8 training modules with 28 hands-on exercises. Learn profiles, multi-agent, GitHub, messaging, browsing, files, dashboard, and sessions |
+| **Search** (`search.html`) | 🆕 Multi-language knowledge base search — find Hermes commands, tips, and config in English/中文/한국어/ES. Type "/" to focus search |
 | **Community** (`community.html`) | Idea board where users share how they use Hermes — post and like |
 
 ## Features
