@@ -697,6 +697,8 @@ renderAll();
 
 function goToLang(lang) {
   localStorage.setItem('hermes_lang', lang);
+  var sel = document.querySelector('.lang-select');
+  if (sel) sel.value = lang;
   if (typeof setLanguage === 'function') setLanguage(lang);
   if (typeof setUILanguage === 'function') setUILanguage(lang);
 }
