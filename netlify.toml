@@ -1,0 +1,13 @@
+# Netlify configuration for Hermes Deploy Guide
+# Static HTML site — no build step needed
+
+[build]
+  publish = "."
+
+# All pages are static HTML
+# Deploy the entire directory as-is
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

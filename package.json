@@ -1,0 +1,23 @@
+{
+  "name": "hermes-deploy-guide",
+  "version": "1.0.0",
+  "description": "**Run your own AI agent locally — no cloud, no tokens, no monthly bills.**",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wangboyang1/hermes-deploy-guide.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wangboyang1/hermes-deploy-guide/issues"
+  },
+  "homepage": "https://github.com/wangboyang1/hermes-deploy-guide#readme",
+  "devDependencies": {
+    "netlify-cli": "^26.0.2"
+  }
+}
