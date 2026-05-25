@@ -235,7 +235,7 @@
 
 <script>
 const state = {
-  currentStep: 1, totalSteps: 5,
+  currentStep: 1, totalSteps: 6,
   os: null, ram: null, gpu: null,
 };
 
@@ -283,7 +283,7 @@ function detectOS() {
 function renderProgress() {
   const bar = document.getElementById('progressBar');
   let html = '';
-  const labels = ['Environment', 'Ollama', 'Model', 'Hermes', 'Messaging'];
+  const labels = ['Environment', 'Ollama', 'Model', 'Hermes', 'Messaging', 'Cloud API'];
   for (let i = 0; i < state.totalSteps; i++) {
     if (i > 0) {
       const cls = i < state.currentStep ? 'progress-line done' : 'progress-line';
@@ -476,7 +476,7 @@ function renderStep4() {
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
-        <button class="btn btn-primary" onclick="goToStep(5)">Next: Set Up Messaging →</button>
+        <button class="btn btn-primary" onclick="goToStep(5)">Next: Add Cloud Models (Optional) →</button>
       </div>
     </div>`;
 }
@@ -484,7 +484,101 @@ function renderStep4() {
 function renderStep5() {
   return `
     <div class="card">
-      <h2><span class="num">5</span> Connect Messaging Apps</h2>
+      <h2><span class="num">5</span> Bonus: Add Cloud Model APIs</h2>
+      <p class="subtitle">Local models are great, but cloud models give you more power when you need it. These are affordable and powerful options.</p>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('deepseek')">🇨🇳 DeepSeek</button>
+        <button class="tab" onclick="switchTab('kimi')">🔮 Kimi</button>
+        <button class="tab" onclick="switchTab('glm')">🤖 GLM (Zhipu)</button>
+      </div>
+
+      <!-- DeepSeek -->
+      <div class="tab-content active" id="tab-deepseek">
+        <div class="model-card" style="border-color:var(--accent);background:rgba(88,166,255,0.04);margin-bottom:1rem">
+          <div class="m-name">DeepSeek</div>
+          <div class="m-size">💰 ~$0.14 / 1M input tokens</div>
+          <div class="m-desc">Top-tier reasoning at a fraction of OpenAI's price. Excellent for coding, math, and complex multi-step tasks. Models: deepseek-chat (V3), deepseek-reasoner (R1).</div>
+        </div>
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem"><strong>1.</strong> Get your API key at <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:var(--accent)">platform.deepseek.com</a></p>
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem"><strong>2.</strong> Set the key in Hermes:</p>
+        <div class="code-block">
+          <span class="lang-tag">shell</span>
+          <button class="copy-btn" onclick="copyCode(this, 'hermes config set model.provider deepseek')">Copy</button>
+          <pre>hermes config set model.provider deepseek</pre>
+        </div>
+        <p style="font-size:0.82rem;color:var(--muted);margin-top:0.3rem">Or add directly to your .env file:</p>
+        <div class="code-block">
+          <span class="lang-tag">shell</span>
+          <button class="copy-btn" onclick="copyCode(this, 'echo DEEPSEEK_API_KEY=sk-your-key-here >> ~/.hermes/.env')">Copy</button>
+          <pre>echo "DEEPSEEK_API_KEY=sk-your-key-here" >> ~/.hermes/.env</pre>
+        </div>
+      </div>
+
+      <!-- Kimi -->
+      <div class="tab-content" id="tab-kimi">
+        <div class="model-card" style="border-color:var(--accent);background:rgba(88,166,255,0.04);margin-bottom:1rem">
+          <div class="m-name">Kimi (Moonshot)</div>
+          <div class="m-size">💰 ~$0.17 / 1M input tokens</div>
+          <div class="m-desc">128K context window. Great for long documents, research papers, and extended conversations. Model: moonshot-v1-128k.</div>
+        </div>
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem"><strong>1.</strong> Get your API key at <a href="https://platform.moonshot.cn/console/api-keys" target="_blank" style="color:var(--accent)">platform.moonshot.cn</a></p>
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem"><strong>2.</strong> Set the key in Hermes:</p>
+        <div class="code-block">
+          <span class="lang-tag">shell</span>
+          <button class="copy-btn" onclick="copyCode(this, 'hermes config set model.provider kimi')">Copy</button>
+          <pre>hermes config set model.provider kimi</pre>
+        </div>
+        <div class="code-block">
+          <span class="lang-tag">shell</span>
+          <button class="copy-btn" onclick="copyCode(this, 'echo KIMI_API_KEY=sk-your-key-here >> ~/.hermes/.env')">Copy</button>
+          <pre>echo "KIMI_API_KEY=sk-your-key-here" >> ~/.hermes/.env</pre>
+        </div>
+      </div>
+
+      <!-- GLM -->
+      <div class="tab-content" id="tab-glm">
+        <div class="model-card" style="border-color:var(--accent);background:rgba(88,166,255,0.04);margin-bottom:1rem">
+          <div class="m-name">GLM (Zhipu AI)</div>
+          <div class="m-size">💰 ~$0.07 / 1M input tokens</div>
+          <div class="m-desc">Most affordable option. Strong Chinese + English bilingual support. Models: glm-4-flash (fast), glm-4-plus (powerful).</div>
+        </div>
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem"><strong>1.</strong> Get your API key at <a href="https://open.bigmodel.cn/usercenter/apikeys" target="_blank" style="color:var(--accent)">open.bigmodel.cn</a></p>
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.6rem"><strong>2.</strong> Set the key in Hermes:</p>
+        <div class="code-block">
+          <span class="lang-tag">shell</span>
+          <button class="copy-btn" onclick="copyCode(this, 'hermes config set model.provider glm')">Copy</button>
+          <pre>hermes config set model.provider glm</pre>
+        </div>
+        <div class="code-block">
+          <span class="lang-tag">shell</span>
+          <button class="copy-btn" onclick="copyCode(this, 'echo GLM_API_KEY=your-key-here >> ~/.hermes/.env')">Copy</button>
+          <pre>echo "GLM_API_KEY=your-key-here" >> ~/.hermes/.env</pre>
+        </div>
+      </div>
+
+      <div class="note" style="margin-top:1rem">
+        <strong>🔄 Switching providers:</strong> You can switch anytime with <code style="background:var(--code-bg);padding:0.15rem 0.4rem;border-radius:4px">/model</code> during a chat session.
+        Hermes supports 20+ providers — mix local (Ollama) and cloud models freely.
+      </div>
+
+      <div class="success-box">
+        <strong>💡 Strategy tip:</strong> Use local models (Ollama) for private, everyday tasks — and switch to cloud models
+        for complex work that needs more power. Best of both worlds.
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goToStep(4)">← Back</button>
+        <button class="btn btn-secondary" onclick="goToStep(6)">Skip (I'll use local only) →</button>
+        <button class="btn btn-primary" onclick="goToStep(6)">Next: Set Up Messaging →</button>
+      </div>
+    </div>`;
+}
+
+function renderStep6() {
+  return `
+    <div class="card">
+      <h2><span class="num">6</span> Connect Messaging Apps</h2>
       <p class="subtitle">Let Hermes talk to you on Telegram and WeChat — or any of 15+ platforms.</p>
 
       <div class="tabs">
@@ -555,7 +649,7 @@ function renderStep5() {
       </div>
 
       <div class="btn-row">
-        <button class="btn btn-secondary" onclick="goToStep(4)">← Back</button>
+        <button class="btn btn-secondary" onclick="goToStep(5)">← Back</button>
         <button class="btn btn-secondary" onclick="resetAll()">🔄 Start Over</button>
       </div>
     </div>`;
@@ -570,10 +664,15 @@ function goToStep(n) {
 function renderAll() {
   renderProgress();
   document.getElementById('main').innerHTML = [
-    renderStep1, renderStep2, renderStep3, renderStep4, renderStep5
+    renderStep1, renderStep2, renderStep3, renderStep4, renderStep5, renderStep6
   ][state.currentStep - 1]();
   document.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => switchTab(t.textContent.includes('Telegram') ? 'telegram' : 'wechat'));
+    t.addEventListener('click', () => {
+      const text = t.textContent.trim();
+      const map = { '📱 Telegram': 'telegram', '💬 WeChat': 'wechat', '🇨🇳 DeepSeek': 'deepseek', '🔮 Kimi': 'kimi', '🤖 GLM': 'glm' };
+      const platform = map[text] || (text.includes('Telegram') ? 'telegram' : text.includes('WeChat') ? 'wechat' : text.includes('DeepSeek') ? 'deepseek' : text.includes('Kimi') ? 'kimi' : 'glm');
+      switchTab(platform);
+    });
   });
 }
 
@@ -595,9 +694,16 @@ function selectGPU(val) { state.gpu = val || null; renderAll(); }
 function switchTab(platform) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  const idx = platform === 'telegram' ? 0 : 1;
-  document.querySelectorAll('.tab')[idx].classList.add('active');
-  document.getElementById(`tab-${platform}`).classList.add('active');
+  // Find the tab by its text content
+  const tabTexts = { telegram: 'Telegram', wechat: 'WeChat', deepseek: 'DeepSeek', kimi: 'Kimi', glm: 'GLM' };
+  const targetText = tabTexts[platform] || platform;
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    if (t.textContent.includes(targetText)) {
+      t.classList.add('active');
+    }
+  });
+  const el = document.getElementById('tab-' + platform);
+  if (el) el.classList.add('active');
 }
 
 function copyCode(btn, text) {

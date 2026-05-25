@@ -408,6 +408,70 @@
   </div>
 </section>
 
+<!-- ═══════════ BEST PRACTICES & TIPS ═══════════ -->
+<section>
+  <h2>🧠 Best Practices & Pro Tips</h2>
+  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">
+    Collected from the official <a href="https://hermes-agent.nousresearch.com/docs/guides/tips" target="_blank" style="color:var(--accent)">Hermes docs</a> — quick wins to get the most out of your agent.
+  </p>
+
+  <div class="hermes-grid">
+    <div class="hermes-card">
+      <div class="cmd" style="color:var(--accent)">🎯 Be Specific</div>
+      <div class="desc">Vague prompts produce vague results. Include file paths, line numbers, error messages, and expected behavior. One detailed message beats three rounds of clarification.</div>
+      <div class="example">"Fix the TypeError in api/handlers.py line 47" instead of "fix the code"</div>
+    </div>
+    <div class="hermes-card">
+      <div class="cmd" style="color:var(--accent)">📋 Front-Load Context</div>
+      <div class="desc">Paste error tracebacks directly. Mention your OS, Python version, project structure. The agent reads everything — give it the full picture upfront.</div>
+    </div>
+    <div class="hermes-card">
+      <div class="cmd" style="color:var(--accent)">📄 Use AGENTS.md</div>
+      <div class="desc">Create an AGENTS.md file in your project root with recurring instructions (coding style, test framework, API endpoints). Hermes reads it automatically every session.</div>
+      <div class="example">"We use pytest with -n 4. All APIs are at /api/v2."</div>
+    </div>
+    <div class="hermes-card">
+      <div class="cmd" style="color:var(--accent)">🛠️ Let It Use Its Tools</div>
+      <div class="desc">Don't micromanage HOW the agent works — tell it WHAT you want. Hermes can read files, run commands, and search code. Trust it to figure out the approach.</div>
+    </div>
+    <div class="hermes-card">
+      <div class="cmd" style="color:var(--accent)">💾 Use Persistent Memory</div>
+      <div class="desc">Hermes remembers across sessions. Tell it your preferences once: "Remember I prefer tabs over spaces" or "My timezone is UTC+8". It saves these and applies them forever.</div>
+      <div class="example">hermes memory status — check what's saved</div>
+    </div>
+    <div class="hermes-card">
+      <div class="cmd" style="color:var(--accent)">📚 Load Skills for Complex Tasks</div>
+      <div class="desc">Skills are reusable workflows. For PR reviews, GitHub ops, or code review, load the matching skill for pre-tested procedures and edge case handling.</div>
+      <div class="example">/skills — browse the skill catalog</div>
+    </div>
+    <div class="hermes-card">
+      <div class="cmd" style="color:var(--accent)">🔄 Switch Models Mid-Task</div>
+      <div class="desc">Use a fast model for simple queries and a powerful one for complex work. Switch instantly with /model — no restart needed.</div>
+      <div class="example">/model → pick any configured provider</div>
+    </div>
+    <div class="hermes-card">
+      <div class="cmd" style="color:var(--accent)">⏰ Automate with Cron Jobs</div>
+      <div class="desc">Schedule recurring tasks — daily briefings, PR monitoring, system health checks. Hermes can run on a schedule, deliver results to your messaging app.</div>
+      <div class="example">hermes cron create "every morning 8am"</div>
+    </div>
+    <div class="hermes-card">
+      <div class="cmd" style="color:var(--accent)">🔀 Use Profiles for Isolation</div>
+      <div class="desc">Keep work and personal projects separate with profiles. Each has its own config, skills, memory, and sessions — no cross-contamination.</div>
+      <div class="example">hermes profile create work</div>
+    </div>
+    <div class="hermes-card">
+      <div class="cmd" style="color:var(--accent)">📊 Monitor with /usage</div>
+      <div class="desc">Track token usage and costs. Useful when using cloud API models — know exactly what you're spending.</div>
+      <div class="example">/usage — show current session stats</div>
+    </div>
+  </div>
+
+  <div class="tip" style="margin-top:1.5rem">
+    <strong>📖 More:</strong> Full tips & best practices at 
+    <a href="https://hermes-agent.nousresearch.com/docs/guides/tips" target="_blank" style="color:var(--accent)">hermes-agent.nousresearch.com/docs/guides/tips</a>
+  </div>
+</section>
+
 </main>
 
 <footer>

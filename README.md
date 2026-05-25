@@ -16,15 +16,16 @@ A step-by-step interactive guide for non-technical users to deploy [Hermes Agent
 | 2. Ollama | Download and install Ollama with OS-specific instructions |
 | 3. Model | Choose from 14 recommended models filtered to your hardware |
 | 4. Hermes | One command to install Hermes, then `hermes setup` to configure |
-| 5. Messaging | Connect Telegram and WeChat (or 15+ other platforms) |
+| 5. Cloud API | (Optional) Add DeepSeek, Kimi, or GLM for affordable cloud power |
+| 6. Messaging | Connect Telegram and WeChat (or 15+ other platforms) |
 
 ## Pages
 
 | Page | Description |
 |------|-------------|
 | **Home** (`index.html`) | Value proposition — why run an AI agent locally, who it's for |
-| **Deploy** (`deploy.html`) | Interactive 5-step wizard with OS detection, model recommendations, copy-paste commands |
-| **Commands** (`commands.html`) | Terminal basics for macOS and Windows, plus full Hermes CLI reference |
+| **Deploy** (`deploy.html`) | Interactive 6-step wizard with OS detection, model recommendations, cloud API setup, and copy-paste commands |
+| **Commands** (`commands.html`) | Terminal basics for macOS and Windows, full Hermes CLI reference, and Best Practices & Pro Tips from the official docs |
 | **Community** (`community.html`) | Idea board where users share how they use Hermes — post and like |
 
 ## Features
