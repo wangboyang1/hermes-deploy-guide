@@ -35,12 +35,12 @@
   nav a.nav-link:hover, nav a.nav-link.active { color: var(--text); border-bottom-color: var(--accent); }
 
   /* ── Header ── */
-  header {
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 2rem 1.5rem; text-align: center;
+  .page-header {
+    text-align: center; padding: 3rem 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
   }
-  header h1 { font-size: 1.8rem; font-weight: 700; color: #fff; }
-  header p  { color: var(--muted); margin-top: 0.35rem; font-size: 1rem; }
+  .page-header h1 { font-size: 2rem; font-weight: 700; color: #fff; }
+  .page-header p { color: var(--muted); margin-top: 0.5rem; font-size: 1.05rem; }
 
   /* ── Progress Bar ── */
   .progress-wrap {
@@ -156,9 +156,14 @@
     vertical-align: middle;
   }
   .compare-table tr.best-row td { background: rgba(63,185,80,0.04); }
+  .sel-row td { background: rgba(88,166,255,0.06) !important; }
   .best-tag {
     font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 8px;
     background: rgba(63,185,80,0.15); color: var(--green); font-weight: 600;
+  }
+  .sel-tag {
+    font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 8px;
+    background: rgba(88,166,255,0.15); color: var(--accent); font-weight: 600;
   }
   .other-table {
     width: 100%; border-collapse: collapse; font-size: 0.82rem;
@@ -256,10 +261,10 @@
   </select>
 </nav>
 
-<header>
+<div class="page-header">
   <h1>Deploy Hermes Agent with Ollama</h1>
   <p>A step-by-step guide to running your own local AI agent, start to finish</p>
-</header>
+</div>
 
 <div class="progress-wrap" id="progressBar"></div>
 
@@ -276,6 +281,7 @@
 const state = {
   currentStep: 1, totalSteps: 6,
   os: null, ram: null, gpu: null,
+  selectedModel: null,  // currently selected model name
 };
 
 const MODELS = [
@@ -436,6 +442,11 @@ function renderStep2() {
     </div>`;
 }
 
+function selectModel(name) {
+  state.selectedModel = name;
+  renderAll();  // re-render step 3 with updated selection
+}
+
 function renderStep3() {
   const recommended = recommendModels();
   const best = getBestModel();
@@ -444,7 +455,14 @@ function renderStep3() {
   const os = state.os || detectOS();
   const cmd = (name) => `ollama pull ${name}`;
 
-  // Detect OS for specific instructions
+  // Auto-select best if nothing selected yet
+  if (!state.selectedModel && best) {
+    state.selectedModel = best.name;
+  }
+  const sel = state.selectedModel;
+  const selModel = MODELS.find(m => m.name === sel);
+  const selCmd = sel ? cmd(sel) : '';
+
   const isWindows = os === 'windows';
   const shellType = isWindows ? 'PowerShell' : 'Terminal';
   const shellNote = isWindows
@@ -454,64 +472,39 @@ function renderStep3() {
   return `
     <div class="card">
       <h2><span class="num">3</span> Download an Open-Source Model</h2>
-      <p class="subtitle">Based on your hardware (${state.ram}GB RAM${state.gpu && state.gpu !== 'none' ? ', with GPU' : ''}), here are your best options.</p>
+      <p class="subtitle">Based on your hardware (${state.ram}GB RAM${state.gpu && state.gpu !== 'none' ? ', with GPU' : ''}), here are your best options. Click <strong>Select</strong> on a model to see its install command below.</p>
 
       ${top3.length > 0 ? `
-      <!-- ── Top 3 Comparison ── -->
       <h3 style="font-size:1rem;color:#fff;margin:1rem 0 0.6rem">🏆 Top Picks — Comparison</h3>
       <div style="overflow-x:auto;margin-bottom:1rem">
         <table class="compare-table">
           <tr>
-            <th>Model</th>
-            <th>Size</th>
-            <th>RAM</th>
-            <th>GPU</th>
-            <th>Speed</th>
-            <th>Best For</th>
-            <th></th>
+            <th>Model</th><th>Size</th><th>RAM</th><th>GPU</th><th>Speed</th><th>Best For</th><th></th>
           </tr>
           ${top3.map((m, i) => `
-            <tr class="${m.name === best.name ? 'best-row' : ''}">
-              <td><strong>${m.name}</strong>${m.name === best.name ? ' <span class="best-tag">★ Best</span>' : ''}</td>
+            <tr class="${sel === m.name ? 'sel-row' : ''}${m.name === best.name ? ' best-row' : ''}">
+              <td><strong>${m.name}</strong>${m.name === best.name ? ' <span class=\"best-tag\">★ Best</span>' : ''}${sel === m.name ? ' <span class=\"sel-tag\">✓ Selected</span>' : ''}</td>
               <td>${m.size}</td>
               <td>${m.minRam} GB</td>
               <td>${m.gpu ? 'Yes' : 'CPU OK'}</td>
               <td>${m.tier === 'entry' ? '⚡ Fast' : m.tier === 'mid' ? '⚡⚡ Good' : '⚡⚡⚡ Heavy'}</td>
               <td>${m.desc.slice(0, 50)}...</td>
-              <td><button class="btn btn-primary" style="padding:0.3rem 0.7rem;font-size:0.78rem"
-                onclick="copyCode(this,'${cmd(m.name)}')">📋 Copy</button></td>
+              <td><button class=\"btn ${sel === m.name ? 'btn-primary' : 'btn-secondary'}\" style=\"padding:0.3rem 0.7rem;font-size:0.78rem;white-space:nowrap\"
+                onclick=\"selectModel('${m.name}')\">${sel === m.name ? '✓ Selected' : 'Select'}</button></td>
             </tr>
           `).join('')}
         </table>
       </div>
       ` : ''}
 
-      <!-- ── Install Instruction ── -->
-      <h3 style="font-size:1rem;color:#fff;margin:1rem 0 0.4rem">📥 How to Install</h3>
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem">
-        ${shellNote} Make sure Ollama is running first (check your system tray or run <code style="background:var(--code-bg);padding:0.1rem 0.35rem;border-radius:3px">ollama serve</code>).
-      </p>
-
-      ${best ? `
-      <div class="code-block">
-        <span class="lang-tag">${isWindows ? 'powershell' : 'shell'}</span>
-        <button class="copy-btn" onclick="copyCode(this, '${cmd(best.name).replace(/'/g,"\\'")}')">Copy</button>
-        <pre id="installCmd">${cmd(best.name)}</pre>
-      </div>
-      <p style="font-size:0.8rem;color:var(--muted);margin-top:0.3rem">
-        Paste this into your ${shellType}. The model will download (${best.size}) — takes 2-10 minutes depending on your internet.
-      </p>
-      ` : ''}
-
-      <!-- ── Other Options ── -->
       ${others.length > 0 ? `
       <h3 style="font-size:1rem;color:#fff;margin:1.5rem 0 0.6rem">📋 Other Compatible Models</h3>
-      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.5rem">Click any row to copy its install command:</p>
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.5rem">Click a row to select it — the install command updates below:</p>
       <table class="other-table">
         <tr><th>Model</th><th>Size</th><th>Description</th></tr>
         ${others.map(m => `
-          <tr onclick="copyCode(this,'${cmd(m.name)}')" class="clickable-row" title="Click to copy: ${cmd(m.name)}">
-            <td><code style="color:var(--green)">${m.name}</code></td>
+          <tr onclick="selectModel('${m.name}')" class="clickable-row${sel === m.name ? ' sel-row' : ''}" title="Select ${m.name}">
+            <td><code style="color:${sel === m.name ? 'var(--accent)' : 'var(--green)'}">${m.name}</code>${sel === m.name ? ' <span class=\"sel-tag\" style=\"font-size:0.65rem\">✓ Selected</span>' : ''}</td>
             <td>${m.size}</td>
             <td>${m.desc}</td>
           </tr>
@@ -523,10 +516,27 @@ function renderStep3() {
         <div class="warn"><strong>⚠️ No models match your hardware.</strong> Try increasing RAM or adding a GPU.</div>
       ` : ''}
 
+      <!-- ── Dynamic Install Section (at bottom) ── -->
+      ${sel ? `
+      <h3 style="font-size:1rem;color:#fff;margin:1.5rem 0 0.4rem">📥 How to Install — <span style="color:var(--accent)">${sel}</span></h3>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem">
+        ${shellNote} Make sure Ollama is running first (check your system tray or run <code style="background:var(--code-bg);padding:0.1rem 0.35rem;border-radius:3px">ollama serve</code>).
+      </p>
+
+      <div class="code-block">
+        <span class="lang-tag">${isWindows ? 'powershell' : 'shell'}</span>
+        <button class="copy-btn" onclick="copyCode(this, '${selCmd.replace(/'/g,"\\'")}')">Copy</button>
+        <pre id="installCmd">${selCmd}</pre>
+      </div>
+      <p style="font-size:0.8rem;color:var(--muted);margin-top:0.3rem">
+        Paste this into your ${shellType}. ${selModel ? `The model will download (${selModel.size}) — takes 2-10 minutes depending on your internet.` : ''}
+      </p>
+
       <div class="note">
         <strong>🧠 Verifying your install:</strong> After downloading, test with<br>
-        <code style="background:var(--code-bg);padding:0.15rem 0.4rem;border-radius:4px">ollama run ${best ? best.name : 'llama3.2:3b'} "Hello, are you working?"</code>
+        <code style="background:var(--code-bg);padding:0.15rem 0.4rem;border-radius:4px">ollama run ${sel} "Hello, are you working?"</code>
       </div>
+      ` : ''}
 
       <div class="btn-row">
         <button class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
@@ -777,7 +787,7 @@ function renderAll() {
 }
 
 function resetAll() {
-  state.currentStep = 1; state.os = null; state.ram = null; state.gpu = null;
+  state.currentStep = 1; state.os = null; state.ram = null; state.gpu = null; state.selectedModel = null;
   renderAll();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
